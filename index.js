@@ -26,7 +26,7 @@ module.exports = class DB {
     value: Mongoose.SchemaTypes.Mixed
   }));
 
-  ///**@type {Collection<string,any>} The cache will be updated automatically*/
+  /**@type {Collection<string,any>} The cache will be updated automatically*/
   cache = new Collection();
 
   saveLog(msg, value) {
