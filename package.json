@@ -1,0 +1,27 @@
+{
+  "name": "@mephisto5558/mongoose-db",
+  "version": "1.0.0",
+  "description": "A DB class for Mongoose/MongoDB with cache, with flattend access. Currently requires discord.js, this will be changed in the future",
+  "main": "index.js",
+  "keywords": [
+    "mongodb",
+    "mongoose"
+  ],
+  "author": "Mephisto5558",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.11.0"
+  },
+  "dependencies": {
+    "@discordjs/collection": "^1.5.3",
+    "mongoose": "^7.6.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mephisto5558/Mongoose-DB.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Mephisto5558/Mongoose-DB/issues"
+  },
+  "homepage": "https://github.com/Mephisto5558/Mongoose-DB#readme"
+}
