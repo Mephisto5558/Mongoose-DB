@@ -1,6 +1,6 @@
 {
   "name": "@mephisto5558/mongoose-db",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "A DB class for Mongoose/MongoDB with cache, with flattend access. Currently requires discord.js, this will be changed in the future",
   "main": "index.js",
   "keywords": [
