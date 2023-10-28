@@ -8,7 +8,6 @@ global.log ??= {
 }; //if the file is running separately
 
 module.exports = class DB {
-  /**@param {string}dbConnectionString MongoDB connection string @param {number|false}valueLoggingMaxJSONLength default:20, false to disable value logging*/
   constructor(dbConnectionString, valueLoggingMaxJSONLength = 20) {
     if (Mongoose.connection.readyState != 1) {
       if (!dbConnectionString) throw new Error('A Connection String is required!');
@@ -26,21 +25,19 @@ module.exports = class DB {
     value: Mongoose.SchemaTypes.Mixed
   }));
 
-  /**@type {Collection<string,any>} The cache will be updated automatically*/
   cache = new Collection();
 
   saveLog(msg, value) {
     const jsonValue = JSON.stringify(value);
     log.setType('DB').debug(msg + (this.valueLoggingMaxJSONLength >= jsonValue?.length ? `, value: ${jsonValue}` : '')).setType();
+    return this;
   }
 
-  /**@returns {Promise<DB>}DB*/
   async fetchAll() {
     for (const { key, value } of await this.schema.find().exec()) this.cache.set(key, value);
     return this;
   }
 
-  /**@returns value of collection*/
   async fetch(db) {
     const { value } = await this.schema.findOne({ key: db }).exec() || {};
     this.cache.set(db, value);
@@ -49,7 +46,6 @@ module.exports = class DB {
 
   reduce = () => this.cache.reduce((acc, value, key) => acc.push({ key, value }) && acc, []);
 
-  /**@param {string}db@param {string}key*/
   get(db, key) {
     let data = this.cache.get(db);
     if (key) for (const objKey of key.split('.')) {
@@ -60,7 +56,6 @@ module.exports = class DB {
     return data;
   }
 
-  /**@param {string}key@param {boolean}overwrite overwrite existing collection, default: `false` @returns {value}value*/
   async set(db, value, overwrite = false) {
     if (!db) return;
 
@@ -74,7 +69,6 @@ module.exports = class DB {
     return data.value;
   }
 
-  /**@param {string}db@param {string}key@returns {value}value*/
   async update(db, key, value) {
     if (!key) return;
 
@@ -85,14 +79,11 @@ module.exports = class DB {
     return data.value;
   }
 
-  /**@param {string}db@param {string}key@param value supports [1, 2, 3] as well as 1, 2, 3 @returns {Array}value*/
-  push(db, key, ...value) { return this._push(false, db, key, ...value); }
+  push(db, key, ...value) { return this.#push(false, db, key, ...value); }
+  pushToSet(db, key, ...value) { return this.#push(true, db, key, ...value); }
 
-  /**@param {string}db@param {string}key@param value supports [1, 2, 3] as well as 1, 2, 3 @returns {Array}value*/
-  pushToSet(db, key, ...value) { return this._push(true, db, key, ...value); }
-
-  /**@param {boolean}set If true, there will be no duplicates @param {string}db@param {string}key@param value supports [1, 2, 3] as well as 1, 2, 3 @returns {Array}value*/
-  async _push(set, db, key, ...value) {
+  /**@param {boolean}set If true, there will be no duplicates @param {string}db @param {string}key @returns {Array}value*/
+  async #push(set, db, key, ...value) {
     const values = value.length == 1 && Array.isArray(value[0]) ? value[0] : value;
     if (!db || !values.length) return;
 
@@ -103,7 +94,6 @@ module.exports = class DB {
     return data.value;
   }
 
-  /**@param {string}db@param {string}key if no key is provided, the whole db gets deleted@returns true if the element existed or the key param is provied and false if the element did not exist*/
   async delete(db, key) {
     if (!db) return false;
     if (key) {
