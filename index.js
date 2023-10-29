@@ -8,11 +8,13 @@ global.log ??= {
 }; //if the file is running separately
 
 module.exports = class DB {
-  constructor(dbConnectionString, valueLoggingMaxJSONLength = 20) {
+  constructor(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = 20) {
     if (Mongoose.connection.readyState != 1) {
       if (!dbConnectionString) throw new Error('A Connection String is required!');
       Mongoose.connect(dbConnectionString);
     }
+
+    this.collection = collection;
 
     if (valueLoggingMaxJSONLength === false) this.valueLoggingMaxJSONLength = 0;
     else this.valueLoggingMaxJSONLength = Number.isNaN(valueLoggingMaxJSONLength) ? 20 : valueLoggingMaxJSONLength;
@@ -20,7 +22,7 @@ module.exports = class DB {
     this.fetchAll();
   }
 
-  schema = Mongoose.model('db-collection', new Mongoose.Schema({
+  schema = Mongoose.model(this.collection, new Mongoose.Schema({
     key: String,
     value: Mongoose.SchemaTypes.Mixed
   }));
