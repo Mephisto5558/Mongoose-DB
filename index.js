@@ -14,18 +14,16 @@ module.exports = class DB {
       Mongoose.connect(dbConnectionString);
     }
 
-    this.collection = collection;
+    this.schema = Mongoose.model(collection, new Mongoose.Schema({
+      key: String,
+      value: Mongoose.SchemaTypes.Mixed
+    }));
 
     if (valueLoggingMaxJSONLength === false) this.valueLoggingMaxJSONLength = 0;
     else this.valueLoggingMaxJSONLength = Number.isNaN(valueLoggingMaxJSONLength) ? 20 : valueLoggingMaxJSONLength;
 
     this.fetchAll();
   }
-
-  schema = Mongoose.model(this.collection, new Mongoose.Schema({
-    key: String,
-    value: Mongoose.SchemaTypes.Mixed
-  }));
 
   cache = new Collection();
 
