@@ -75,7 +75,7 @@ const value = db.get('collection', 'key.subkey1.subkey2')
 
 ### 6. Set a Value in a Collection
 Set a value in a specific collection, with an option to overwrite existing data:<br>
-It is strongly suggested to use `DB#update` insted.
+It is strongly suggested to use `DB#update` instead.
 
 ```js
 const newValue = db.set('collection', 'value', true);
