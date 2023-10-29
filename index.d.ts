@@ -17,7 +17,7 @@ declare class DB {
    * @param dbConnectionString MongoDB connection string
    * @param valueLoggingMaxJSONLength default:20, false to disable value logging
    */
-  constructor(dbConnectionString: string, valueLoggingMaxJSONLength?: number | false): DB;
+  constructor(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false): DB;
 
   saveLog(msg: string, value: any): DB;
   fetchAll(): Promise<DB>;
