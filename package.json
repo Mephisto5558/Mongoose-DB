@@ -16,7 +16,7 @@
     "node": ">=16.11.0"
   },
   "dependencies": {
-    "@discordjs/collection": "^1.5.3",
+    "@discordjs/collection": "^2.0.0",
     "mongoose": "^7.6.3"
   },
   "repository": {
