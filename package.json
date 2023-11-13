@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@discordjs/collection": "^2.0.0",
-    "mongoose": "^7.6.3"
+    "mongoose": "^8.0.0"
   },
   "repository": {
     "type": "git",
