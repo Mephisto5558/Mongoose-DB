@@ -19,7 +19,7 @@ declare class NoCacheDB {
    * @param dbConnectionString MongoDB connection string
    * @param valueLoggingMaxJSONLength default:20, false to disable value logging
    */
-  constructor(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false): DB;
+  constructor(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false): NoCacheDB;
 
   saveLog(msg: string, value: any): NoCacheDB;
 

@@ -23,6 +23,11 @@ class NoCacheDB {
     else this.valueLoggingMaxJSONLength = Number.isNaN(valueLoggingMaxJSONLength) ? 20 : valueLoggingMaxJSONLength;
   }
 
+  saveLog(msg, value) {
+    const jsonValue = JSON.stringify(value);
+    log.setType('DB').debug(msg + (this.valueLoggingMaxJSONLength >= jsonValue?.length ? `, value: ${jsonValue}` : '')).setType();
+    return this;
+  }
 
   // Todo: Implement reduce()
 
@@ -74,13 +79,13 @@ class NoCacheDB {
   async delete(db, key) {
     if (!db) return false;
     if (key) {
-      log.setType('DB').debug(`deleting ${db}.${key}`).setType();
+      this.saveLog(`deleting ${db}.${key}`);
 
       await this.schema.findOneAndUpdate({ key: db }, { $unset: { [`value.${key}`]: '' } }, { new: true, upsert: true }).exec();
       return true;
     }
 
-    log.setType('DB').debug(`deleting ${db}`).setType();
+    this.saveLog(`deleting ${db}`);
 
     return (await this.schema.deleteOne({ key: db }).exec()).deletedCount > 0;
   }
@@ -148,7 +153,7 @@ class DB extends NoCacheDB {
   async delete(db, key) {
     if (!db) return false;
     if (key) {
-      log.setType('DB').debug(`deleting ${db}.${key}`).setType();
+      this.saveLog(`deleting ${db}.${key}`);
 
       const data = await this.schema.findOneAndUpdate({ key: db }, { $unset: { [`value.${key}`]: '' } }, { new: true, upsert: true }).exec();
       this.cache.set(db, data.value);
