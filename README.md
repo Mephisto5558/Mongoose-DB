@@ -20,7 +20,7 @@ $ npm install @mephisto5558/mongoose-db
 First, you need to import the `DB` module into your JavaScript file:
 
 ```js
-const DB = require('@mephisto5558/mongoose-db');
+const { DB } = require('@mephisto5558/mongoose-db');
 ```
 
 ### 2. Initialize a New DB Instance
