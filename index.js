@@ -7,7 +7,7 @@ global.log ??= {
   setType: () => log
 }; //if the file is running separately
 
-module.exports = class DB {
+module.exports.DB = class DB {
   constructor(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = 20) {
     if (Mongoose.connection.readyState != 1) {
       if (!dbConnectionString) throw new Error('A Connection String is required!');
@@ -110,3 +110,85 @@ module.exports = class DB {
     return this.cache.delete(db);
   }
 };
+
+module.exports.NoCacheDB = class NoCacheDB {
+  constructor(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = 20) {
+    if (Mongoose.connection.readyState != 1) {
+      if (!dbConnectionString) throw new Error('A Connection String is required!');
+      Mongoose.connect(dbConnectionString);
+    }
+
+    this.schema = Mongoose.model(collection, new Mongoose.Schema({
+      key: String,
+      value: Mongoose.SchemaTypes.Mixed
+    }));
+
+    if (valueLoggingMaxJSONLength === false) this.valueLoggingMaxJSONLength = 0;
+    else this.valueLoggingMaxJSONLength = Number.isNaN(valueLoggingMaxJSONLength) ? 20 : valueLoggingMaxJSONLength;
+  }
+
+  saveLog = module.exports.DB.prototype.saveLog;
+
+  // Todo: Implement reduce()
+
+  async get(db, key) {
+    let data = (await this.schema.findOne({ key: db }).exec())?.value;
+    if (key) for (const objKey of key.split('.')) {
+      data = data?.[objKey];
+      if (data === undefined) return data;
+    }
+
+    return data;
+  }
+
+  async set(db, value, overwrite = false) {
+    if (!db) return;
+
+    this.saveLog(`setting collection ${db}, ${overwrite ? 'overwriting existing data' : ''}`, value);
+
+    const update = { $set: { value } };
+    if (!overwrite) update.$setOnInsert = { key: db };
+
+    const data = await this.schema.findOneAndUpdate({ key: db }, update, { new: true, upsert: true }).exec();
+    return data.value;
+  }
+
+  async update(db, key, value) {
+    if (!key) return;
+
+    this.saveLog(`updating ${db}.${key}`, value);
+
+    const data = await this.schema.findOneAndUpdate({ key: db }, { $set: { [`value.${key}`]: value } }, { new: true, upsert: true }).exec();
+    return data.value;
+  }
+
+  push(db, key, ...value) { return this.#push(false, db, key, ...value); }
+  pushToSet(db, key, ...value) { return this.#push(true, db, key, ...value); }
+
+  /**@param {boolean}set If true, there will be no duplicates @param {string}db @param {string}key @returns {Array}value*/
+  async #push(set, db, key, ...value) {
+    const values = value.length == 1 && Array.isArray(value[0]) ? value[0] : value;
+    if (!db || !values.length) return;
+
+    this.saveLog(`pushing data to ${db}.${key}`, values);
+
+    const data = await this.schema.findOneAndUpdate({ key: db }, { [set ? '$addToSet' : '$push']: { [`value.${key}`]: { $each: values } } }, { new: true, upsert: true }).exec();
+    return data.value;
+  }
+
+  async delete(db, key) {
+    if (!db) return false;
+    if (key) {
+      log.setType('DB').debug(`deleting ${db}.${key}`).setType();
+
+      await this.schema.findOneAndUpdate({ key: db }, { $unset: { [`value.${key}`]: '' } }, { new: true, upsert: true }).exec();
+      return true;
+    }
+
+    log.setType('DB').debug(`deleting ${db}`).setType();
+
+    return (await this.schema.deleteOne({ key: db }).exec()).deletedCount > 0;
+  }
+};
+
+module.exports.default = module.exports.DB;
