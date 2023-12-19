@@ -29,7 +29,7 @@ class NoCacheDB {
     return this;
   }
 
-  // Todo: Implement reduce()
+  reduce = () => this.schema.find().select('key value -_id').exec();
 
   async get(db, key) {
     let data = (await this.schema.findOne({ key: db }).exec())?.value;
@@ -100,7 +100,7 @@ class DB extends NoCacheDB {
   cache = new Collection();
 
   async fetchAll() {
-    for (const { key, value } of await this.schema.find().exec()) this.cache.set(key, value);
+    for (const { key, value } of await super.reduce()) this.cache.set(key, value);
     return this;
   }
 
