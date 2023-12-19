@@ -22,8 +22,9 @@ declare class NoCacheDB {
   constructor(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false): NoCacheDB;
 
   saveLog(msg: string, value: any): NoCacheDB;
+  reduce(): Promise<{ key: string, value: any }>
 
-  /**@returns `undefined` if no `db` is given */
+  /**@returns `undefined` if no `db` is given*/
   get(db: string, key?: string): Promise<any>;
   
   /**@param overwrite overwrite existing collection, default: `false`*/
