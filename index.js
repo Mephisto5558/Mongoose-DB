@@ -29,7 +29,9 @@ class NoCacheDB {
     return this;
   }
 
-  reduce = () => this.schema.find().select('key value -_id').exec();
+  reduce() {
+    return this.schema.find().select('key value -_id').exec();
+  }
 
   async get(db, key) {
     let data = (await this.schema.findOne({ key: db }).exec())?.value;
@@ -110,7 +112,9 @@ class DB extends NoCacheDB {
     return value;
   }
 
-  reduce = () => this.cache.reduce((acc, value, key) => acc.push({ key, value }) && acc, []);
+  reduce() {
+    return this.cache.reduce((acc, value, key) => acc.push({ key, value }) && acc, []);
+  }
 
   get(db, key) {
     let data = this.cache.get(db);
