@@ -1,6 +1,6 @@
 {
   "name": "@mephisto5558/mongoose-db",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "scripts": {
     "test": "echo \"Error: no test specified\""
   },
