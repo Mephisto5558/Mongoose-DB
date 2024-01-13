@@ -8,10 +8,10 @@ global.log ??= {
 }; //if the file is running separately
 
 class NoCacheDB {
-  constructor(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = 20) {
+  async init(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = 20) {
     if (Mongoose.connection.readyState != 1) {
       if (!dbConnectionString) throw new Error('A Connection String is required!');
-      Mongoose.connect(dbConnectionString);
+      await Mongoose.connect(dbConnectionString);
     }
 
     this.schema = Mongoose.model(collection, new Mongoose.Schema({
@@ -94,9 +94,9 @@ class NoCacheDB {
 }
 
 class DB extends NoCacheDB {
-  constructor(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = 20) {
-    super(dbConnectionString, collection, valueLoggingMaxJSONLength);
-    this.fetchAll();
+  async init(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = 20) {
+    await super.init(dbConnectionString, collection, valueLoggingMaxJSONLength);
+    return this.fetchAll();
   }
 
   cache = new Collection();
