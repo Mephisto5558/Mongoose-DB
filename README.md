@@ -47,7 +47,7 @@ import { DB } from '@mephisto5558/mongoose-db'
 Create a new instance of the `DB` class, providing a MongoDB connection string:
 
 ```js
-const db = new DB('<your-mongodb-connection-string>');
+const db = await new DB().init('<your-mongodb-connection-string>');
 ```
 
 ## Examples
