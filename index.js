@@ -8,7 +8,7 @@ global.log ??= {
 }; //if the file is running separately
 
 class NoCacheDB {
-  async init(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = 20) {
+  async init(dbConnectionString, collection = 'db-collections', valueLoggingMaxJSONLength = 20) {
     if (Mongoose.connection.readyState != 1) {
       if (!dbConnectionString) throw new Error('A Connection String is required!');
       await Mongoose.connect(dbConnectionString);
