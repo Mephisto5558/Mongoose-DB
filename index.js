@@ -107,7 +107,7 @@ class DB extends NoCacheDB {
   }
 
   async fetch(db) {
-    const { value } = await this.schema.findOne({ key: db }).exec() || {};
+    const { value } = await this.schema.findOne({ key: db }).exec() ?? {};
     this.cache.set(db, value);
     return value;
   }
