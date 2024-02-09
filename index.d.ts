@@ -1,79 +1,53 @@
 import { Collection } from '@discordjs/collection';
 import { Document, Model, Types } from 'mongoose';
 
-export { DB, NoCacheDB }
-export default DB
+export { DB, NoCacheDB };
+export default DB;
 
 declare class NoCacheDB {
-  schema: Model<Document<unknown, {}, {
-    _id: Types.ObjectId,
-    key: string,
-    value?: any
+  schema: Model<Document<unknown, Record<string, never>, {
+    _id: Types.ObjectId;
+    key: string;
+    value?: unknown;
   }>>;
 
-  /**The cache will be updated automatically*/
-  cache: Collection<string, any>;
   valueLoggingMaxJSONLength: number;
 
   /**
    * @param dbConnectionString MongoDB connection string
-   * @param valueLoggingMaxJSONLength default:20, false to disable value logging
-   */
-  init(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false): Promise<NoCacheDB>;
+   * @param valueLoggingMaxJSONLength default:20, false to disable value logging*/
+  init(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false): Promise<this>;
 
-  saveLog(msg: string, value: any): NoCacheDB;
-  reduce(): Promise<{ key: string, value: any }>
+  saveLog(msg: string, value: unknown): this;
+  reduce(): Promise<{ key: string; value: unknown }>;
 
-  /**@returns `undefined` if no `db` is given*/
-  get(db: string, key?: string): Promise<any>;
+  /** @returns `undefined` if no `db` is given*/
+  get(db: string, key?: string): Promise<unknown>;
 
-  /**@param overwrite overwrite existing collection, default: `false`*/
-  set(db: string, value: any, overwrite?: boolean): Promise<any>;
-  update(db: string, key: string, value: any): Promise<any>;
-  push(db: string, key: string, ...value: any[]): Promise<any[]>;
-  pushToSet(db: string, key: string, ...value: any[]): Promise<any[]>;
+  /** @param overwrite overwrite existing collection, default: `false`*/
+  set(db: string, value: unknown, overwrite?: boolean): Promise<unknown>;
+  update(db: string, key: string, value: unknown): Promise<unknown>;
+  push(db: string, key: string, ...value: unknown[]): Promise<unknown[]>;
+  pushToSet(db: string, key: string, ...value: unknown[]): Promise<unknown[]>;
 
   /**
    * @param key if not provided, the whole `db` gets deleted
-   * @returns `true` if the element existed
-   */
+   * @returns `true` if the element existed*/
   delete(db: string, key?: string): Promise<boolean>;
 }
 
 declare class DB extends NoCacheDB {
-  schema: Model<Document<unknown, {}, {
-    _id: Types.ObjectId,
-    key: string,
-    value?: any
-  }>>;
-
   /**The cache will be updated automatically*/
-  cache: Collection<string, any>;
-  valueLoggingMaxJSONLength: number;
+  cache: Collection<string, unknown>;
+
+  fetchAll(): Promise<this>;
+  fetch(db: string): Promise<unknown>;
+
+  /** @returns `undefined` if no `db` is given */
+  get(db: string, key?: string): unknown;
 
   /**
-   * This class implements a cache.
-   * @param dbConnectionString MongoDB connection string
-   * @param valueLoggingMaxJSONLength default:20, false to disable value logging
-   */
-  init(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false): Promise<DB>;
-
-  saveLog(msg: string, value: any): DB;
-  fetchAll(): Promise<DB>;
-  fetch(db: string): Promise<any>;
-
-  /**@returns `undefined` if no `db` is given */
-  get(db: string, key?: string): any;
-
-  /**@param overwrite overwrite existing collection, default: `false`*/
-  set(db: string, value: any, overwrite?: boolean): Promise<any>;
-  update(db: string, key: string, value: any): Promise<any>;
-  push(db: string, key: string, ...value: any[]): Promise<any[]>;
-  pushToSet(db: string, key: string, ...value: any[]): Promise<any[]>;
-
-  /**
-   * @param key if not provided, the whole `db` gets deleted
-   * @returns `true` if the element existed or the key param is provied and `false` if the element did not exist
-   */
+   * @inheritdoc
+   * @returns `true` if the element existed or the key param is provied and `false` if the element did not exist*/
   delete(db: string, key?: string): Promise<boolean>;
 }
