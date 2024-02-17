@@ -24,6 +24,12 @@
     "@discordjs/collection": "^2.0.0",
     "mongoose": "^8.0.0"
   },
+  "devDependencies": {
+    "@mephisto5558/eslint-config": "^1.0.0",
+    "@stylistic/eslint-plugin": "^1.6.1",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "eslint-plugin-jsdoc": "^48.0.5"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Mephisto5558/Mongoose-DB.git"
