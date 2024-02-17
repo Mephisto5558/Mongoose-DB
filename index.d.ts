@@ -19,7 +19,7 @@ declare class NoCacheDB {
   init(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false): Promise<this>;
 
   saveLog(msg: string, value: unknown): this;
-  reduce(): Promise<{ key: string; value: unknown }>;
+  reduce(): Promise<{ key: string; value: unknown }[]>;
 
   /** @returns `undefined` if no `db` is given*/
   get(db: string, key?: string): Promise<unknown>;
@@ -37,11 +37,13 @@ declare class NoCacheDB {
 }
 
 declare class DB extends NoCacheDB {
-  /**The cache will be updated automatically*/
+  /** The cache will be updated automatically*/
   cache: Collection<string, unknown>;
 
   fetchAll(): Promise<this>;
   fetch(db: string): Promise<unknown>;
+
+  reduce(): { key: string; value: unknown }[];
 
   /** @returns `undefined` if no `db` is given */
   get(db: string, key?: string): unknown;
