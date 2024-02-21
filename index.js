@@ -15,16 +15,19 @@ class NoCacheDB {
       value: Mongoose.SchemaTypes.Mixed
     }));
 
-    this.logDebug = debugLoggingFunction;
+    this.#logDebug = debugLoggingFunction;
 
     if (valueLoggingMaxJSONLength === false) this.valueLoggingMaxJSONLength = 0;
     else this.valueLoggingMaxJSONLength = Number.isNaN(valueLoggingMaxJSONLength) ? 20 : valueLoggingMaxJSONLength;
   }
 
+  /** @type {(...str: any[]) => unknown} */
+  #logDebug;
+
   /** @type {import('.').NoCacheDB['saveLog']} */
   saveLog(msg, value) {
     const jsonValue = JSON.stringify(value);
-    this.logDebug(msg + (this.valueLoggingMaxJSONLength >= jsonValue?.length ? `, value: ${jsonValue}` : ''));
+    this.#logDebug(msg + (this.valueLoggingMaxJSONLength >= jsonValue?.length ? `, value: ${jsonValue}` : ''));
     return this;
   }
 
