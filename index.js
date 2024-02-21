@@ -2,14 +2,9 @@ const
   Mongoose = require('mongoose').default.set('strictQuery', true),
   { Collection } = require('@discordjs/collection');
 
-const log = global.log ?? {
-  debug: (...data) => { console.debug(...data); return log; },
-  setType: () => log
-}; // if the file is running separately
-
 class NoCacheDB {
   /** @type {import('.').NoCacheDB['init']} */
-  async init(dbConnectionString, collection = 'db-collections', valueLoggingMaxJSONLength = 20) {
+  async init(dbConnectionString, collection = 'db-collections', valueLoggingMaxJSONLength = 20, debugLoggingFunction = console.debug) {
     if (Mongoose.connection.readyState != 1) {
       if (!dbConnectionString) throw new Error('A Connection String is required!');
       await Mongoose.connect(dbConnectionString);
@@ -20,6 +15,8 @@ class NoCacheDB {
       value: Mongoose.SchemaTypes.Mixed
     }));
 
+    this.logDebug = debugLoggingFunction;
+
     if (valueLoggingMaxJSONLength === false) this.valueLoggingMaxJSONLength = 0;
     else this.valueLoggingMaxJSONLength = Number.isNaN(valueLoggingMaxJSONLength) ? 20 : valueLoggingMaxJSONLength;
   }
@@ -27,7 +24,7 @@ class NoCacheDB {
   /** @type {import('.').NoCacheDB['saveLog']} */
   saveLog(msg, value) {
     const jsonValue = JSON.stringify(value);
-    log.setType('DB').debug(msg + (this.valueLoggingMaxJSONLength >= jsonValue?.length ? `, value: ${jsonValue}` : '')).setType();
+    this.logDebug(msg + (this.valueLoggingMaxJSONLength >= jsonValue?.length ? `, value: ${jsonValue}` : ''));
     return this;
   }
 
@@ -113,8 +110,8 @@ class NoCacheDB {
 
 class DB extends NoCacheDB {
   /** @type {import('.').DB['init']} */
-  async init(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = 20) {
-    await super.init(dbConnectionString, collection, valueLoggingMaxJSONLength);
+  async init(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = 20, debugLoggingFunction = console.debug) {
+    await super.init(dbConnectionString, collection, valueLoggingMaxJSONLength, debugLoggingFunction);
     return this.fetchAll();
   }
 
