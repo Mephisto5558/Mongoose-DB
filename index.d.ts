@@ -23,7 +23,7 @@ declare class NoCacheDB {
   saveLog(msg: string, value: unknown): this;
   reduce(): Promise<{ key: string; value: unknown }[]>;
 
-  /** @returns `undefined` if no `db` is given*/
+  get(): Promise<undefined>;
   get(db: string, key?: string): Promise<unknown>;
 
   /** @param overwrite overwrite existing collection, default: `false`*/
@@ -47,7 +47,7 @@ declare class DB extends NoCacheDB {
 
   reduce(): { key: string; value: unknown }[];
 
-  /** @returns `undefined` if no `db` is given */
+  get(): undefined;
   get(db: string, key?: string): unknown;
 
   /**
