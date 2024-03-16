@@ -49,7 +49,7 @@ class NoCacheDB {
     return data;
   }
 
-  /** @type {import('.').NoCacheDB['SET']} */
+  /** @type {import('.').NoCacheDB['set']} */
   async set(db, value, overwrite = false) {
     if (!db) return;
 
