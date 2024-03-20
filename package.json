@@ -4,7 +4,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\""
   },
-  "description": "A DB class for Mongoose/MongoDB with cache, with flattend access. Currently requires discord.js, this will be changed in the future",
+  "description": "A DB class for Mongoose/MongoDB with and without cache, with flattend access.",
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
