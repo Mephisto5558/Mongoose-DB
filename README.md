@@ -8,10 +8,10 @@
 [![CodeQL](https://github.com/Mephisto5558/Mongoose-DB/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/Mephisto5558/Mongoose-DB/actions/workflows/codeql.yml)
 [![ESLint](https://github.com/Mephisto5558/Mongoose-DB/actions/workflows/eslint.yml/badge.svg?branch=main)](https://github.com/Mephisto5558/Mongoose-DB/actions/workflows/eslint.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)<br>
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)
-[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)<br>
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=security_rating)](https://sonarcloud.io/component_measures?metric=Security&id=Mephisto5558_Mongoose-DB)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=sqale_rating)](https://sonarcloud.io/component_measures?metric=Maintainability&id=Mephisto5558_Mongoose-DB)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=reliability_rating)](https://sonarcloud.io/component_measures?metric=Reliability&id=Mephisto5558_Mongoose-DB)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=duplicated_lines_density)](https://sonarcloud.io/component_measures?metric=Duplications&id=Mephisto5558_Mongoose-DB)<br>
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=bugs)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)
