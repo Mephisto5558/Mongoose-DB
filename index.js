@@ -78,7 +78,7 @@ class NoCacheDB {
   /** @type {import('.').NoCacheDB['pushToSet']} */
   pushToSet(db, key, ...value) { return this.#push(true, db, key, ...value); }
 
-  /* eslint-disable-next-line jsdoc/require-returns-check */ // false positive
+  /* eslint-disable-next-line jsdoc/require-returns-check -- false positive (Intellisense says `any` should be used)*/
   /**
    * @param {boolean}set If true, there will be no duplicates
    * @param {string}db
