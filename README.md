@@ -1,7 +1,7 @@
 # Mongoose-DB
 [![Activity](https://img.shields.io/github/commit-activity/m/Mephisto5558/Mongoose-DB)](https://github.com/Mephisto5558/Mongoose-DB/pulse)
 [![License](https://img.shields.io/github/license/Mephisto5558/Mongoose-DB)](https://github.com/Mephisto5558/Mongoose-DB/blob/main/LICENSE)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=ncloc)](https://sonarcloud.io/component_measures?metric=ncloc&id=Mephisto5558_Mongoose-DB)
 [![wakatime](https://wakatime.com/badge/github/Mephisto5558/Mongoose-DB.svg)](https://wakatime.com/badge/github/Mephisto5558/Mongoose-DB)<br>
 [![npm version](https://badge.fury.io/js/@mephisto5558%2Fmongoose-db.svg)](https://www.npmjs.com/package/@mephisto5558/mongoose-db)
 [![npm downloads](https://img.shields.io/npm/dm/%40mephisto5558%2Fmongoose-db)](https://www.npmjs.com/package/@mephisto5558/mongoose-db)<br>
