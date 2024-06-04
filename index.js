@@ -169,16 +169,16 @@ class DB extends NoCacheDB {
   }
 
   /** @type {import('.').DB['push']} */
-  push(db, key, ...value) {
-    const data = super.push(db, key, ...value);
+  async push(db, key, ...value) {
+    const data = await super.push(db, key, ...value);
     this.cache.set(db, data);
 
     return data;
   }
 
   /** @type {import('.').DB['pushToSet']} */
-  pushToSet(db, key, ...value) {
-    const data = super.pushToSet(db, key, ...value);
+  async pushToSet(db, key, ...value) {
+    const data = await super.pushToSet(db, key, ...value);
     this.cache.set(db, data);
 
     return data;
