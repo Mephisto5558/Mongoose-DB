@@ -17,7 +17,7 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)
 
-[![Discord Server](https://discordapp.com/api/guilds/725378451988676609/widget.png?style=shield)](https://discord.gg/u6xjqzz)
+[![Discord Server](https://discord.com/api/guilds/1011956895529041950/widget.png?style=shield)](https://discord.com/invite/yWwGTeppjR)
 
 ## DB Module for Node.js using Mongoose and MongoDB
 
