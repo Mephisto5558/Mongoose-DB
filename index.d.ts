@@ -1,5 +1,5 @@
-import { Collection } from '@discordjs/collection';
-import { Document, Model, Types } from 'mongoose';
+import type { Collection } from '@discordjs/collection';
+import type { Document, Model, Types } from 'mongoose';
 
 export { DB, NoCacheDB };
 export default DB;
@@ -29,8 +29,8 @@ declare class NoCacheDB {
   /** @param overwrite overwrite existing collection, default: `false`*/
   set(db: string, value: unknown, overwrite?: boolean): Promise<unknown>;
   update(db: string, key: string, value: unknown): Promise<unknown>;
-  push(db: string, key: string, ...value: unknown[]): Promise<unknown[]>;
-  pushToSet(db: string, key: string, ...value: unknown[]): Promise<unknown[]>;
+  push(db: string, key: string, ...value: unknown[]): Promise<unknown>;
+  pushToSet(db: string, key: string, ...value: unknown[]): Promise<unknown>;
 
   /**
    * @param key if not provided, the whole `db` gets deleted
@@ -45,9 +45,13 @@ declare class DB extends NoCacheDB {
   fetchAll(): Promise<this>;
   fetch(db: string): Promise<unknown>;
 
+  // @ts-expect-error Promiseless method
   reduce(): { key: string; value: unknown }[];
 
+  // @ts-expect-error Promiseless method
   get(): undefined;
+
+  // @ts-expect-error Promiseless method
   get(db: string, key?: string): unknown;
 
   /**

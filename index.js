@@ -5,7 +5,7 @@ const
 class NoCacheDB {
   /** @type {import('.').NoCacheDB['init']} */
   async init(dbConnectionString, collection = 'db-collections', valueLoggingMaxJSONLength = 20, debugLoggingFunction = console.debug) {
-    if (Mongoose.connection.readyState != 1) {
+    if (Mongoose.connection.readyState != Mongoose.ConnectionStates.connected) {
       if (!dbConnectionString) throw new Error('A Connection String is required!');
       await Mongoose.connect(dbConnectionString);
     }
@@ -27,12 +27,12 @@ class NoCacheDB {
   /** @type {import('.').NoCacheDB['saveLog']} */
   saveLog(msg, value) {
     const jsonValue = JSON.stringify(value);
-    this.#logDebug(msg + (this.valueLoggingMaxJSONLength >= jsonValue?.length ? `, value: ${jsonValue}` : ''));
+    this.#logDebug(msg + (this.valueLoggingMaxJSONLength >= jsonValue ? `, value: ${jsonValue}` : ''));
     return this;
   }
 
   /** @type {import('.').NoCacheDB['reduce']} */
-  reduce() {
+  async reduce() {
     return this.schema.find().select('key value -_id').exec();
   }
 
@@ -73,10 +73,10 @@ class NoCacheDB {
   }
 
   /** @type {import('.').NoCacheDB['push']} */
-  push(db, key, ...value) { return this.#push(false, db, key, ...value); }
+  async push(db, key, ...value) { return this.#push(false, db, key, ...value); }
 
   /** @type {import('.').NoCacheDB['pushToSet']} */
-  pushToSet(db, key, ...value) { return this.#push(true, db, key, ...value); }
+  async pushToSet(db, key, ...value) { return this.#push(true, db, key, ...value); }
 
   /* eslint-disable-next-line jsdoc/require-returns-check -- false positive (Intellisense says `any` should be used)*/
   /**
