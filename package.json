@@ -22,11 +22,11 @@
   },
   "dependencies": {
     "@discordjs/collection": "^2.1.0",
-    "mongoose": "^8.5.2"
+    "mongoose": "^8.5.3"
   },
   "devDependencies": {
     "@mephisto5558/eslint-config": "^2.0.0",
-    "eslint": "^9.8.0"
+    "eslint": "^9.9.0"
   },
   "repository": {
     "type": "git",
