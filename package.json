@@ -21,12 +21,12 @@
     "node": ">=20.11.0"
   },
   "dependencies": {
-    "@discordjs/collection": "^2.1.0",
-    "mongoose": "^8.5.3"
+    "@discordjs/collection": "^2.1.1",
+    "mongoose": "^8.6.0"
   },
   "devDependencies": {
     "@mephisto5558/eslint-config": "^2.0.2",
-    "eslint": "^9.9.0"
+    "eslint": "^9.9.1"
   },
   "repository": {
     "type": "git",
