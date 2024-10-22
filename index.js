@@ -1,10 +1,11 @@
 const
   Mongoose = require('mongoose').default.set('strictQuery', true),
-  { Collection } = require('@discordjs/collection');
+  { Collection } = require('@discordjs/collection'),
+  DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH = 20;
 
 class NoCacheDB {
   /** @type {import('.').NoCacheDB['init']} */
-  async init(dbConnectionString, collection = 'db-collections', valueLoggingMaxJSONLength = 20, debugLoggingFunction = console.debug) {
+  async init(dbConnectionString, collection = 'db-collections', valueLoggingMaxJSONLength = DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH, debugLoggingFunction = console.debug) {
     if (Mongoose.connection.readyState != Mongoose.ConnectionStates.connected) {
       if (!dbConnectionString) throw new Error('A Connection String is required!');
       await Mongoose.connect(dbConnectionString);
@@ -18,7 +19,7 @@ class NoCacheDB {
     this.#logDebug = debugLoggingFunction;
 
     if (valueLoggingMaxJSONLength === false) this.valueLoggingMaxJSONLength = 0;
-    else this.valueLoggingMaxJSONLength = Number.isNaN(valueLoggingMaxJSONLength) ? 20 : valueLoggingMaxJSONLength;
+    else this.valueLoggingMaxJSONLength = Number.isNaN(valueLoggingMaxJSONLength) ? DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH : valueLoggingMaxJSONLength;
   }
 
   /** @type {(...str: any[]) => unknown} */
@@ -113,7 +114,7 @@ class NoCacheDB {
 
 class DB extends NoCacheDB {
   /** @type {import('.').DB['init']} */
-  async init(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = 20, debugLoggingFunction = console.debug) {
+  async init(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH, debugLoggingFunction = console.debug) {
     await super.init(dbConnectionString, collection, valueLoggingMaxJSONLength, debugLoggingFunction);
     return this.fetchAll();
   }
