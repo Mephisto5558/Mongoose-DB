@@ -17,8 +17,7 @@ declare class NoCacheDB {
    * @param dbConnectionString MongoDB connection string
    * @param valueLoggingMaxJSONLength default:`20`, `false` to disable value logging
    * @param debugLoggingFunction default: `console.debug`*/
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  init(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false, debugLoggingFunction?: (...str: any[]) => unknown): Promise<this>;
+  init(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false, debugLoggingFunction?: (...str: unknown[]) => unknown): Promise<this>;
 
   saveLog(msg: string, value: unknown): this;
   reduce(): Promise<{ key: string; value: unknown }[]>;
