@@ -5,7 +5,7 @@
 [![wakatime](https://wakatime.com/badge/github/Mephisto5558/Mongoose-DB.svg)](https://wakatime.com/badge/github/Mephisto5558/Mongoose-DB)<br>
 [![npm version](https://badge.fury.io/js/@mephisto5558%2Fmongoose-db.svg)](https://www.npmjs.com/package/@mephisto5558/mongoose-db)
 [![npm downloads](https://img.shields.io/npm/dm/%40mephisto5558%2Fmongoose-db)](https://www.npmjs.com/package/@mephisto5558/mongoose-db)<br>
-[![CodeQL](https://github.com/Mephisto5558/Mongoose-DB/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/Mephisto5558/Mongoose-DB/actions/workflows/codeql.yml)
+[![CodeQL](https://github.com/Mephisto5558/Mongoose-DB/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Mephisto5558/Mongoose-DB/actions/workflows/github-code-scanning/codeql)
 [![ESLint](https://github.com/Mephisto5558/Mongoose-DB/actions/workflows/eslint.yml/badge.svg?branch=main)](https://github.com/Mephisto5558/Mongoose-DB/actions/workflows/eslint.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Mongoose-DB)<br>
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Mongoose-DB&metric=security_rating)](https://sonarcloud.io/component_measures?metric=Security&id=Mephisto5558_Mongoose-DB)
