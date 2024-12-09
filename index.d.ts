@@ -16,7 +16,7 @@ declare class NoCacheDB {
   /**
    * @param dbConnectionString MongoDB connection string
    * @param valueLoggingMaxJSONLength default:`20`, `false` to disable value logging
-   * @param debugLoggingFunction default: `console.debug`*/
+   * @param debugLoggingFunction default: `console.debug` */
   init(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false, debugLoggingFunction?: (...str: unknown[]) => unknown): Promise<this>;
 
   saveLog(msg: string, value: unknown): this;
@@ -25,7 +25,7 @@ declare class NoCacheDB {
   get(): Promise<undefined>;
   get(db: string, key?: string): Promise<unknown>;
 
-  /** @param overwrite overwrite existing collection, default: `false`*/
+  /** @param overwrite overwrite existing collection, default: `false` */
   set(db: string, value: unknown, overwrite?: boolean): Promise<unknown>;
   update(db: string, key: string, value: unknown): Promise<unknown>;
   push(db: string, key: string, ...value: unknown[]): Promise<unknown>;
@@ -33,12 +33,12 @@ declare class NoCacheDB {
 
   /**
    * @param key if not provided, the whole `db` gets deleted
-   * @returns `true` if the element existed*/
+   * @returns `true` if the element existed */
   delete(db: string, key?: string): Promise<boolean>;
 }
 
 declare class DB extends NoCacheDB {
-  /** The cache will be updated automatically*/
+  /** The cache will be updated automatically */
   cache: Collection<string, unknown>;
 
   fetchAll(this: DB): Promise<this>;
@@ -53,7 +53,7 @@ declare class DB extends NoCacheDB {
   // @ts-expect-error Promiseless method
   get(this: DB, db: string, key?: string): unknown;
 
-  /** @param overwrite overwrite existing collection, default: `false`*/
+  /** @param overwrite overwrite existing collection, default: `false` */
   set(this: DB, db: string, value: unknown, overwrite?: boolean): Promise<unknown>;
 
   update(this: DB, db: string, key: string, value: unknown): Promise<unknown>;
@@ -62,6 +62,6 @@ declare class DB extends NoCacheDB {
 
   /**
    * @inheritdoc
-   * @returns `true` if the element existed or the key param is provied and `false` if the element did not exist*/
+   * @returns `true` if the element existed or the key param is provied and `false` if the element did not exist */
   delete(this: DB, db: string, key?: string): Promise<boolean>;
 }
