@@ -19,7 +19,7 @@ declare class NoCacheDB {
    * @param debugLoggingFunction default: `console.debug` */
   init(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false, debugLoggingFunction?: (...str: unknown[]) => unknown): Promise<this>;
 
-  saveLog(msg: string, value: unknown): this;
+  saveLog(msg: string, value?: unknown): this;
   reduce(): Promise<{ key: string; value: unknown }[]>;
 
   get(): Promise<undefined>;

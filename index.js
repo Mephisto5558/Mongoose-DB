@@ -28,7 +28,7 @@ class NoCacheDB {
   /** @type {import('.').NoCacheDB['saveLog']} */
   saveLog(msg, value) {
     const jsonValue = JSON.stringify(value);
-    this.#logDebug(msg + (this.valueLoggingMaxJSONLength >= jsonValue.length ? `, value: ${jsonValue}` : ''));
+    this.#logDebug(msg + (jsonValue && this.valueLoggingMaxJSONLength >= jsonValue.length ? `, value: ${jsonValue}` : ''));
     return this;
   }
 
