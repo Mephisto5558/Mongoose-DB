@@ -35,6 +35,8 @@ declare class NoCacheDB {
    * @param key if not provided, the whole `db` gets deleted
    * @returns `true` if the element existed */
   delete(db: string, key?: string): Promise<boolean>;
+
+  valueOf(): string;
 }
 
 declare class DB extends NoCacheDB {

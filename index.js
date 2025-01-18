@@ -108,6 +108,10 @@ class NoCacheDB {
 
     return (await this.schema.deleteOne({ key: db }).exec()).deletedCount > 0;
   }
+
+  valueOf() {
+    return this.constructor.name; // for discord.js flatten function
+  }
 }
 
 class DB extends NoCacheDB {
