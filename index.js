@@ -80,10 +80,10 @@ class NoCacheDB {
   async pushToSet(db, key, ...value) { return this.#push(true, db, key, ...value); }
 
   /**
-   * @param {boolean}set If true, there will be no duplicates
-   * @param {string}db
-   * @param {string}key
-   * @param {any[]}value */
+   * @param {boolean} set If true, there will be no duplicates
+   * @param {string} db
+   * @param {string} key
+   * @param {any[]} value */
   async #push(set, db, key, ...value) {
     const values = value.length == 1 && Array.isArray(value[0]) ? value[0] : value;
     if (!db || !values.length) return;
