@@ -79,14 +79,14 @@ type GetResult<Database, FlattenedDatabase, DBK extends keyof Database, K extend
 type ModifyResult<Database, DBK extends keyof Database> = Promise<Database[DBK]> & {};
 
 
-// https://github.com/blazejkustra/dynamode/blob/fd3abf1e420612811c3eba96ec431e00c28b2783/lib/utils/types.ts#L10
+// https://github.com/blazejkustra/dynamode/blob/ab81ad1f412b928ffaad3162654c96fb026751c4/lib/utils/types.ts#L10-L67
 
 // Flatten entity
 export type FlattenObject<TValue> = CollapseEntries<CreateObjectEntries<TValue, TValue>>;
 
 type Entry = { key: string; value: unknown };
 type EmptyEntry<TValue> = { key: ''; value: TValue };
-type ExcludedTypes = Date | Set<unknown> | Map<unknown, unknown> | unknown[];
+type ExcludedTypes = Date | Set<unknown> | Map<unknown, unknown> | Uint8Array;
 type ArrayEncoder = `[${bigint}]`;
 
 type EscapeArrayKey<TKey extends string> = TKey extends `${infer TKeyBefore}.${ArrayEncoder}${infer TKeyAfter}`
@@ -94,7 +94,9 @@ type EscapeArrayKey<TKey extends string> = TKey extends `${infer TKeyBefore}.${A
   : TKey;
 
 // Transforms entries to one flattened type
-type CollapseEntries<TEntry extends Entry> = { [E in TEntry as EscapeArrayKey<E['key']>]: E['value']; };
+type CollapseEntries<TEntry extends Entry> = {
+  [E in TEntry as EscapeArrayKey<E['key']>]: E['value'];
+};
 
 // Transforms array type to object
 type CreateArrayEntry<TValue, TValueInitial> = OmitItself<
@@ -122,7 +124,8 @@ type CreateObjectEntries<TValue, TValueInitial> = TValue extends object ? {
       ? TNestedValue extends Entry
         ? TNestedValue['key'] extends ''
           ? { key: TKey; value: TNestedValue['value'] }
-          : { key: `${TKey}.${TNestedValue['key']}`; value: TNestedValue['value'] } | { key: TKey; value: TValue[TKey] }
+          : | { key: `${TKey}.${TNestedValue['key']}`; value: TNestedValue['value'] }
+            | { key: TKey; value: TValue[TKey] }
         : never
       : never
     : never;
