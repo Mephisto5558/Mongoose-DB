@@ -24,9 +24,9 @@ declare class NoCacheDB<Database extends Record<string, unknown>> {
 
   get(): Promise<undefined>;
   get<DBK extends keyof Database>(db: DBK): Promise<Database[DBK]>;
-  get<DBK extends keyof Database, K extends string>(db: DBK, key: K): Promise<GetValueByKey<Database[DBK], K> | undefined>;
+  get<DBK extends keyof Database, K extends string>(db: DBK, key: K): Promise<GetResult<Database[DBK], K>>;
+  get<DBK extends keyof Database, K extends keyof SettingsPaths[Database[DBK]]>(db: DBK, key: K): Promise<GetResult<Database[DBK], K>>;
   get(db: unknown, key?: unknown): Promise<unknown>; // fallback
-  get<DBK extends keyof Database, K extends keyof FlattenedDatabase[DBK]>(db: DBK, key: K): Promise<GetResult<Database, FlattenedDatabase, DBK, K>>;
 
   /** @param overwrite overwrite existing collection, default: `false` */
   set<DBK extends keyof Database>(db: DBK, value: Partial<Database[DBK]>, overwrite?: boolean): ModifyResult<Database, DBK>;
@@ -58,7 +58,7 @@ declare class DB<Database extends Record<string, unknown>> extends NoCacheDB<Dat
 
   get(): undefined;
   get<DBK extends keyof Database>(this: DB, db: DBK): Database[DBK];
-  get<DBK extends keyof Database, K extends string>(this: DB, db: DBK, key: K): GetValueByKey<Database[DBK], K> | undefined;
+  get<DBK extends keyof Database, K extends keyof SettingsPaths[Database[DBK]]>(db: DBK, key: K): GetResult<Database[DBK], K>;
   get(db: unknown, key?: unknown): unknown; // fallback
 
   set<DBK extends keyof Database>(this: DB, db: DBK, value: Partial<Database[DBK]>, overwrite?: boolean): ModifyResult<Database, DBK>;
@@ -79,17 +79,20 @@ declare class DB<Database extends Record<string, unknown>> extends NoCacheDB<Dat
 type ModifyResult<Database, DBK extends keyof Database> = Promise<Database[DBK]> & {};
 
 export type GetValueByKey<T, K extends string>
-  = K extends `${infer Head}.${infer Tail}`
-    ? string extends keyof T
-      ? GetValueByKey<T[keyof T], Tail>
-      : Head extends keyof T
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any -- defer type devaluation */
+  = T extends any
+    ? K extends `${infer Head}.${infer Tail}` // is it a nested path?
+      ? Head extends keyof T // is it the exact head?
         ? GetValueByKey<T[Head], Tail>
-        : undefined
-    : string extends keyof T
-      ? T[keyof T]
-      : K extends keyof T
+        : T extends Record<string, infer V> // is it a record?
+          ? GetValueByKey<V, Tail>
+          : undefined
+      : K extends keyof T // is it not a nested path
         ? T[K]
-        : undefined;
+        : T extends Record<string, infer V> // if the direct key does not exist, check if it is a record
+          ? V
+          : undefined
+    : never; // fallback that should never be reached
 
 type Primitive = string | number | boolean | bigint | Date | Set<unknown> | Map<unknown, unknown> | undefined | null | unknown[];
 
@@ -100,3 +103,24 @@ type Paths<T> = T extends Primitive
   }[keyof T & string];
 
 export type SettingsPaths<T> = string extends keyof T ? Paths<T[keyof T]> : Paths<T>;
+
+/** Returns true if the path involves an unchecked indexed access (e.g., through a Record). */
+type IsUncheckedIndexedAccess<T, K extends string>
+  = K extends `${infer Head}.${infer Tail}`
+    ? T extends Record<string, infer _V>
+      ? true
+      : Head extends keyof T
+        ? IsUncheckedIndexedAccess<T[Head], Tail>
+        : false
+    : T extends Record<string, infer _V>
+      ? true
+      : false;
+
+ type GetResult<T, K extends string>
+  = GetValueByKey<T, K> extends infer RawType
+    ? undefined extends RawType // does it include undefined?
+      ? RawType
+      : IsUncheckedIndexedAccess<T, K> extends true
+        ? RawType | undefined
+        : RawType
+    : never; // fallback that should never be reached
