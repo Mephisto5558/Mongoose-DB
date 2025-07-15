@@ -30,7 +30,7 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
     DBK extends keyof Database, Head extends keyof Database[DBK] & string, Tail extends SettingsPaths<Database[DBK][Head]>
   >(this: this, db: DBK, key: `${Head}.${Tail}`): PromiseToggle<GetResult<Database[DBK], `${Head}.${Tail}`>, PromiseReturn>;
   get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: this, db: DBK, key: K): PromiseToggle<GetResult<Database[DBK], K>, PromiseReturn>;
-  get(this: this, db: unknown): PromiseToggle<unknown, PromiseReturn>; // fallback
+  get(this: this, db: unknown, key?: unknown): PromiseToggle<unknown, PromiseReturn>; // fallback
 
   /** @param overwrite overwrite existing collection, default: `false` */
   set<DBK extends keyof Database>(this: this, db: DBK, value: Partial<Omit<Database[DBK], undefined>>, overwrite?: boolean): ModifyResult<Database, DBK>;
