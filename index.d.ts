@@ -24,9 +24,8 @@ declare class NoCacheDB<Database extends Record<string, unknown>> {
 
   get(): Promise<undefined>;
   get<DBK extends keyof Database>(db: DBK): Promise<Database[DBK]>;
-  get<DBK extends keyof Database, K extends string>(db: DBK, key: K): Promise<GetResult<Database[DBK], K>>;
-  get<DBK extends keyof Database, K extends keyof SettingsPaths[Database[DBK]]>(db: DBK, key: K): Promise<GetResult<Database[DBK], K>>;
-  get(db: unknown, key?: unknown): Promise<unknown>; // fallback
+  get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(db: DBK, key: K): Promise<GetResult<Database[DBK], K>>;
+  get(this: DB, db: unknown): Promise<undefined>;
 
   /** @param overwrite overwrite existing collection, default: `false` */
   set<DBK extends keyof Database>(db: DBK, value: Partial<Database[DBK]>, overwrite?: boolean): ModifyResult<Database, DBK>;
@@ -58,8 +57,8 @@ declare class DB<Database extends Record<string, unknown>> extends NoCacheDB<Dat
 
   get(): undefined;
   get<DBK extends keyof Database>(this: DB, db: DBK): Database[DBK];
-  get<DBK extends keyof Database, K extends keyof SettingsPaths[Database[DBK]]>(db: DBK, key: K): GetResult<Database[DBK], K>;
-  get(db: unknown, key?: unknown): unknown; // fallback
+  get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: DB, db: DBK, key: K): GetResult<Database[DBK], K>;
+  get(this: DB, db: unknown): undefined;
 
   set<DBK extends keyof Database>(this: DB, db: DBK, value: Partial<Database[DBK]>, overwrite?: boolean): ModifyResult<Database, DBK>;
   update<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: DB, db: DBK, key: K, value: GetValueByKey<Database[DBK], K>): ModifyResult<Database, DBK>;
