@@ -24,8 +24,11 @@ declare class NoCacheDB<Database extends Record<string, unknown>> {
 
   get(): Promise<undefined>;
   get<DBK extends keyof Database>(db: DBK): Promise<Database[DBK]>;
+  get<
+    DBK extends keyof Database, Head extends keyof Database[DBK] & string, Tail extends SettingsPaths<Database[DBK][Head]>
+  >(db: DBK, key: `${Head}.${Tail}`): Promise<GetResult<Database[DBK], `${Head}.${Tail}`>>;
   get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(db: DBK, key: K): Promise<GetResult<Database[DBK], K>>;
-  get(this: DB, db: unknown): Promise<undefined>;
+  get(db: unknown): Promise<unknown>; // fallback
 
   /** @param overwrite overwrite existing collection, default: `false` */
   set<DBK extends keyof Database>(db: DBK, value: Partial<Database[DBK]>, overwrite?: boolean): ModifyResult<Database, DBK>;
@@ -33,7 +36,8 @@ declare class NoCacheDB<Database extends Record<string, unknown>> {
 
   push<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(db: DBK, key: K, ...value: (GetValueByKey<Database[DBK], K> extends (infer E)[] ? E : never)[]): ModifyResult<Database, DBK>;
   pushToSet<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    db: DBK, key: K, ...value: (GetValueByKey<Database[DBK], K> extends (infer E)[] ? E : never)[]
+    db: DBK, key: K,
+    ...value: ArrayElement<GetValueByKey<Database[DBK], K>>[]
   ): ModifyResult<Database, DBK>;
 
 
@@ -42,7 +46,8 @@ declare class NoCacheDB<Database extends Record<string, unknown>> {
    * @returns `true` if the element existed */
   delete(): Promise<false>;
   delete(db: keyof Database): Promise<true>;
-  delete<DBK extends keyof Database>(db: DBK, key: SettingsPaths<Database[DBK]>): Promise<boolean>;
+  delete<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: DB, db: DBK, key: K): Promise<K extends SettingsPaths<Database[DBK]> ? true : false>;
+  delete(this: DB, db: unknown): Promise<false>;
 
   valueOf(): string;
 }
@@ -57,6 +62,9 @@ declare class DB<Database extends Record<string, unknown>> extends NoCacheDB<Dat
 
   get(): undefined;
   get<DBK extends keyof Database>(this: DB, db: DBK): Database[DBK];
+  get<
+    DBK extends keyof Database, Head extends keyof Database[DBK] & string, Tail extends SettingsPaths<Database[DBK][Head]>
+  >(this: DB, db: DBK, key: `${Head}.${Tail}`): GetResult<Database[DBK], `${Head}.${Tail}`>;
   get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: DB, db: DBK, key: K): GetResult<Database[DBK], K>;
   get(this: DB, db: unknown): undefined;
 
@@ -69,10 +77,6 @@ declare class DB<Database extends Record<string, unknown>> extends NoCacheDB<Dat
   pushToSet<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     this: DB, db: DBK, key: K, ...value: (GetValueByKey<Database[DBK], K> extends (infer E)[] ? E : never)[]
   ): ModifyResult<Database, DBK>;
-
-  delete(): Promise<false>;
-  delete(db: keyof Database): Promise<true>;
-  delete<DBK extends keyof Database>(this: DB, db: DBK, key?: SettingsPaths<Database[DBK]>): Promise<boolean>;
 }
 
 type ModifyResult<Database, DBK extends keyof Database> = Promise<Database[DBK]> & {};
@@ -83,13 +87,13 @@ export type GetValueByKey<T, K extends string>
     ? K extends `${infer Head}.${infer Tail}` // is it a nested path?
       ? Head extends keyof T // is it the exact head?
         ? GetValueByKey<T[Head], Tail>
-        : T extends Record<string, infer V> // is it a record?
-          ? GetValueByKey<V, Tail>
+        : string extends keyof T // is it a Record<string, unknown>?
+          ? GetValueByKey<T[string], Tail>
           : undefined
-      : K extends keyof T // is it not a nested path
+      : K extends keyof T // is it not a nested path?
         ? T[K]
-        : T extends Record<string, infer V> // if the direct key does not exist, check if it is a record
-          ? V
+        : string extends keyof T // is it a Record<string, unknown>?
+          ? T[string] // same as V, but more explicit
           : undefined
     : never; // fallback that should never be reached
 
@@ -115,7 +119,7 @@ type IsUncheckedIndexedAccess<T, K extends string>
       ? true
       : false;
 
- type GetResult<T, K extends string>
+type GetResult<T, K extends string>
   = GetValueByKey<T, K> extends infer RawType
     ? undefined extends RawType // does it include undefined?
       ? RawType
@@ -123,3 +127,5 @@ type IsUncheckedIndexedAccess<T, K extends string>
         ? RawType | undefined
         : RawType
     : never; // fallback that should never be reached
+
+type ArrayElement<T> = T extends (infer E)[] ? E : never;
