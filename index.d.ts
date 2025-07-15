@@ -1,10 +1,12 @@
 import type { Collection } from '@discordjs/collection';
 import type { Document, Model, Types } from 'mongoose';
 
-export { DB, NoCacheDB };
+export { DB, NoCacheDB, BaseDB };
 export default DB;
 
-declare class NoCacheDB<Database extends Record<string, unknown>> {
+declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseReturn extends boolean> {
+  // `this: this` is used to mark `this` as the inherited class instance (DB or NoCacheDB)
+
   schema: Model<Document<unknown, Record<string, never>, {
     _id: Types.ObjectId;
     key: string;
@@ -17,26 +19,164 @@ declare class NoCacheDB<Database extends Record<string, unknown>> {
    * @param dbConnectionString MongoDB connection string
    * @param valueLoggingMaxJSONLength default:`20`, `false` to disable value logging
    * @param debugLoggingFunction default: `console.debug` */
-  init(dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false, debugLoggingFunction?: (...str: unknown[]) => unknown): Promise<this>;
+  init(this: this, dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false, debugLoggingFunction?: (...str: unknown[]) => unknown): Promise<this>;
 
-  saveLog(msg: string, value?: unknown): this;
-  reduce(): Promise<{ [DBK in keyof Database]: { key: DBK; value: Database[DBK] } }[keyof Database][]>;
+  saveLog(this: this, msg: string, value?: unknown): this;
+  reduce(this: this): PromiseToggle<{ [DBK in keyof Database]: { key: DBK; value: Database[DBK] } }[keyof Database][], PromiseReturn>;
 
-  get(): Promise<undefined>;
-  get<DBK extends keyof Database>(db: DBK): Promise<Database[DBK]>;
+  get(this: this): PromiseToggle<undefined, PromiseReturn>;
+  get<DBK extends keyof Database>(this: this, db: DBK): PromiseToggle<Database[DBK], PromiseReturn>;
   get<
     DBK extends keyof Database, Head extends keyof Database[DBK] & string, Tail extends SettingsPaths<Database[DBK][Head]>
-  >(db: DBK, key: `${Head}.${Tail}`): Promise<GetResult<Database[DBK], `${Head}.${Tail}`>>;
-  get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(db: DBK, key: K): Promise<GetResult<Database[DBK], K>>;
-  get(db: unknown): Promise<unknown>; // fallback
+  >(this: this, db: DBK, key: `${Head}.${Tail}`): PromiseToggle<GetResult<Database[DBK], `${Head}.${Tail}`>, PromiseReturn>;
+  get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: this, db: DBK, key: K): PromiseToggle<GetResult<Database[DBK], K>, PromiseReturn>;
+  get(this: this, db: unknown): PromiseToggle<unknown, PromiseReturn>; // fallback
 
   /** @param overwrite overwrite existing collection, default: `false` */
-  set<DBK extends keyof Database>(db: DBK, value: Partial<Database[DBK]>, overwrite?: boolean): ModifyResult<Database, DBK>;
-  update<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(db: DBK, key: K, value: GetValueByKey<Database[DBK], K>): ModifyResult<Database, DBK>;
+  set<DBK extends keyof Database>(this: this, db: DBK, value: Partial<Omit<Database[DBK], undefined>>, overwrite?: boolean): ModifyResult<Database, DBK>;
 
-  push<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(db: DBK, key: K, ...value: (GetValueByKey<Database[DBK], K> extends (infer E)[] ? E : never)[]): ModifyResult<Database, DBK>;
+  // region update
+
+  // depth 10
+  update<
+    DBK extends keyof Database,
+    K1 extends keyof Database[DBK] & string,
+    K2 extends keyof Database[DBK][K1] & string,
+    K3 extends keyof Database[DBK][K1][K2] & string,
+    K4 extends keyof Database[DBK][K1][K2][K3] & string,
+    K5 extends keyof Database[DBK][K1][K2][K3][K4] & string,
+    K6 extends keyof Database[DBK][K1][K2][K3][K4][K5] & string,
+    K7 extends keyof Database[DBK][K1][K2][K3][K4][K5][K6] & string,
+    K8 extends keyof Database[DBK][K1][K2][K3][K4][K5][K6][K7] & string,
+    K9 extends keyof Database[DBK][K1][K2][K3][K4][K5][K6][K7][K8] & string,
+    K10 extends SettingsPaths<Database[DBK][K1][K2][K3][K4][K5][K6][K7][K8][K9]>
+  >(
+    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}.${K9}.${K10}`,
+    value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}.${K9}.${K10}`>, undefined>
+  ): ModifyResult<Database, DBK>;
+
+  // depth 9
+  update<
+    DBK extends keyof Database,
+    K1 extends keyof Database[DBK] & string,
+    K2 extends keyof Database[DBK][K1] & string,
+    K3 extends keyof Database[DBK][K1][K2] & string,
+    K4 extends keyof Database[DBK][K1][K2][K3] & string,
+    K5 extends keyof Database[DBK][K1][K2][K3][K4] & string,
+    K6 extends keyof Database[DBK][K1][K2][K3][K4][K5] & string,
+    K7 extends keyof Database[DBK][K1][K2][K3][K4][K5][K6] & string,
+    K8 extends keyof Database[DBK][K1][K2][K3][K4][K5][K6][K7] & string,
+    K9 extends SettingsPaths<Database[DBK][K1][K2][K3][K4][K5][K6][K7][K8]>
+  >(
+    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}.${K9}`,
+    value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}.${K9}`>, undefined>
+  ): ModifyResult<Database, DBK>;
+
+  // depth 8
+  update<
+    DBK extends keyof Database,
+    K1 extends keyof Database[DBK] & string,
+    K2 extends keyof Database[DBK][K1] & string,
+    K3 extends keyof Database[DBK][K1][K2] & string,
+    K4 extends keyof Database[DBK][K1][K2][K3] & string,
+    K5 extends keyof Database[DBK][K1][K2][K3][K4] & string,
+    K6 extends keyof Database[DBK][K1][K2][K3][K4][K5] & string,
+    K7 extends keyof Database[DBK][K1][K2][K3][K4][K5][K6] & string,
+    K8 extends SettingsPaths<Database[DBK][K1][K2][K3][K4][K5][K6][K7]>
+  >(
+    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}`,
+    value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}`>, undefined>
+  ): ModifyResult<Database, DBK>;
+
+  // depth 7
+  update<
+    DBK extends keyof Database,
+    K1 extends keyof Database[DBK] & string,
+    K2 extends keyof Database[DBK][K1] & string,
+    K3 extends keyof Database[DBK][K1][K2] & string,
+    K4 extends keyof Database[DBK][K1][K2][K3] & string,
+    K5 extends keyof Database[DBK][K1][K2][K3][K4] & string,
+    K6 extends keyof Database[DBK][K1][K2][K3][K4][K5] & string,
+    K7 extends SettingsPaths<Database[DBK][K1][K2][K3][K4][K5][K6]>
+  >(
+    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}`,
+    value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}`>, undefined>
+  ): ModifyResult<Database, DBK>;
+
+  // depth 6
+  update<
+    DBK extends keyof Database,
+    K1 extends keyof Database[DBK] & string,
+    K2 extends keyof Database[DBK][K1] & string,
+    K3 extends keyof Database[DBK][K1][K2] & string,
+    K4 extends keyof Database[DBK][K1][K2][K3] & string,
+    K5 extends keyof Database[DBK][K1][K2][K3][K4] & string,
+    K6 extends SettingsPaths<Database[DBK][K1][K2][K3][K4][K5]>
+  >(
+    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}`,
+    value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}`>, undefined>
+  ): ModifyResult<Database, DBK>;
+
+  // depth 5
+  update<
+    DBK extends keyof Database,
+    K1 extends keyof Database[DBK] & string,
+    K2 extends keyof Database[DBK][K1] & string,
+    K3 extends keyof Database[DBK][K1][K2] & string,
+    K4 extends keyof Database[DBK][K1][K2][K3] & string,
+    K5 extends SettingsPaths<Database[DBK][K1][K2][K3][K4]>
+  >(
+    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}`,
+    value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}`>, undefined>
+  ): ModifyResult<Database, DBK>;
+
+  // depth 4
+  update<
+    DBK extends keyof Database,
+    K1 extends keyof Database[DBK] & string,
+    K2 extends keyof Database[DBK][K1] & string,
+    K3 extends keyof Database[DBK][K1][K2] & string,
+    K4 extends SettingsPaths<Database[DBK][K1][K2][K3]>
+  >(
+    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}`,
+    value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}`>, undefined>
+  ): ModifyResult<Database, DBK>;
+
+  // depth 3
+  update<
+    DBK extends keyof Database,
+    K1 extends keyof Database[DBK] & string,
+    K2 extends keyof Database[DBK][K1] & string,
+    K3 extends SettingsPaths<Database[DBK][K1][K2]>
+  >(
+    this: this, db: DBK, key: `${K1}.${K2}.${K3}`,
+    value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}`>, undefined>
+  ): ModifyResult<Database, DBK>;
+
+  // depth 2
+  update<
+    DBK extends keyof Database,
+    K1 extends keyof Database[DBK] & string,
+    K2 extends SettingsPaths<Database[DBK][K1]>
+  >(
+    this: this, db: DBK, key: `${K1}.${K2}`,
+    value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}`>, undefined>
+  ): ModifyResult<Database, DBK>;
+
+  // depth 1 & fallback
+  update<
+    DBK extends keyof Database,
+    K extends SettingsPaths<Database[DBK]>
+  >(this: this, db: DBK, key: K, value: Omit<GetValueByKey<Database[DBK], K>, undefined>): ModifyResult<Database, DBK>;
+
+  // endregion update
+
+  push<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
+    this: this, db: DBK, key: K,
+    ...value: ArrayElement<GetValueByKey<Database[DBK], K>>[]
+  ): ModifyResult<Database, DBK>;
   pushToSet<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    db: DBK, key: K,
+    this: this, db: DBK, key: K,
     ...value: ArrayElement<GetValueByKey<Database[DBK], K>>[]
   ): ModifyResult<Database, DBK>;
 
@@ -44,40 +184,24 @@ declare class NoCacheDB<Database extends Record<string, unknown>> {
   /**
    * @param key **if not provided, the whole `db` gets deleted**
    * @returns `true` if the element existed */
-  delete(): Promise<false>;
-  delete(db: keyof Database): Promise<true>;
-  delete<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: DB, db: DBK, key: K): Promise<K extends SettingsPaths<Database[DBK]> ? true : false>;
-  delete(this: DB, db: unknown): Promise<false>;
+  delete(this: this, db?: unknown): Promise<false>;
+  delete(this: this, db: keyof Database): Promise<true>;
+  delete<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: this, db: DBK, key: K): Promise<K extends SettingsPaths<Database[DBK]> ? true : false>;
 
-  valueOf(): string;
+  valueOf(this: this): string;
 }
 
-declare class DB<Database extends Record<string, unknown>> extends NoCacheDB<Database> {
+declare class NoCacheDB<Database extends Record<string, unknown>> extends BaseDB<Database, true> {
+}
+
+declare class DB<Database extends Record<string, unknown>> extends BaseDB<Database, false> {
   cache: Collection<keyof Database, Database[keyof Database]>;
 
-  fetchAll(this: DB): Promise<this>;
-  fetch<DBK extends keyof Database>(this: DB, db: DBK): Promise<Database[DBK]>;
-
-  reduce(this: DB): Awaited<ReturnType<NoCacheDB<Database>['reduce']>>;
-
-  get(): undefined;
-  get<DBK extends keyof Database>(this: DB, db: DBK): Database[DBK];
-  get<
-    DBK extends keyof Database, Head extends keyof Database[DBK] & string, Tail extends SettingsPaths<Database[DBK][Head]>
-  >(this: DB, db: DBK, key: `${Head}.${Tail}`): GetResult<Database[DBK], `${Head}.${Tail}`>;
-  get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: DB, db: DBK, key: K): GetResult<Database[DBK], K>;
-  get(this: DB, db: unknown): undefined;
-
-  set<DBK extends keyof Database>(this: DB, db: DBK, value: Partial<Database[DBK]>, overwrite?: boolean): ModifyResult<Database, DBK>;
-  update<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: DB, db: DBK, key: K, value: GetValueByKey<Database[DBK], K>): ModifyResult<Database, DBK>;
-
-  push<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    this: DB, db: DBK, key: K, ...value: (GetValueByKey<Database[DBK], K> extends (infer E)[] ? E : never)[]
-  ): ModifyResult<Database, DBK>;
-  pushToSet<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    this: DB, db: DBK, key: K, ...value: (GetValueByKey<Database[DBK], K> extends (infer E)[] ? E : never)[]
-  ): ModifyResult<Database, DBK>;
+  fetchAll(this: this): Promise<this>;
+  fetch<DBK extends keyof Database>(this: this, db: DBK): Promise<Database[DBK]>;
 }
+
+type PromiseToggle<T, usePromise extends boolean = false> = usePromise extends true ? Promise<T> : T;
 
 type ModifyResult<Database, DBK extends keyof Database> = Promise<Database[DBK]> & {};
 
