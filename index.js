@@ -4,7 +4,10 @@ const
   DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH = 20;
 
 class NoCacheDB {
-  /** @type {import('.').NoCacheDB['init']} */
+  /**
+   * @type {import('.').NoCacheDB['init']}
+   * @this {this}
+   **/
   async init(dbConnectionString, collection = 'db-collections', valueLoggingMaxJSONLength = DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH, debugLoggingFunction = console.debug) {
     if (Mongoose.connection.readyState != Mongoose.ConnectionStates.connected) {
       if (!dbConnectionString) throw new Error('A Connection String is required!');
@@ -25,7 +28,10 @@ class NoCacheDB {
   /** @type {(...str: any[]) => unknown} */
   #logDebug;
 
-  /** @type {import('.').NoCacheDB['saveLog']} */
+  /**
+   * @type {import('.').NoCacheDB['saveLog']}
+   * @this {this}
+   **/
   saveLog(msg, value) {
     const jsonValue = JSON.stringify(value);
     this.#logDebug(msg + (jsonValue && this.valueLoggingMaxJSONLength >= jsonValue.length ? `, value: ${jsonValue}` : ''));
@@ -50,7 +56,9 @@ class NoCacheDB {
     return data;
   }
 
-  /** @type {import('.').NoCacheDB['set']} */
+  /**
+   * @type {import('.').NoCacheDB['set']}
+   * @param {string | undefined} db */
   async set(db, value, overwrite = false) {
     if (!db) return;
 
@@ -73,10 +81,16 @@ class NoCacheDB {
     return data.value;
   }
 
-  /** @type {import('.').NoCacheDB['push']} */
+  /**
+   * @type {import('.').NoCacheDB['push']}
+   * @this {this}
+   **/
   async push(db, key, ...value) { return this.#push(false, db, key, ...value); }
 
-  /** @type {import('.').NoCacheDB['pushToSet']} */
+  /**
+   * @type {import('.').NoCacheDB['pushToSet']}
+   * @this {this}
+   **/
   async pushToSet(db, key, ...value) { return this.#push(true, db, key, ...value); }
 
   /**
