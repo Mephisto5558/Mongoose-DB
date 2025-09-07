@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@mephisto5558/eslint-config": "latest",
+    "better-typescript-lib": "^2.11.0",
     "eslint": "^9.31.0"
   },
   "repository": {
