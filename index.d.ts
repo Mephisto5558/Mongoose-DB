@@ -1,17 +1,15 @@
 import type { Collection } from '@discordjs/collection';
-import type { Document, Model, Types } from 'mongoose';
+import type { Model, Schema } from 'mongoose';
 
 export { DB, NoCacheDB, BaseDB };
 export default DB;
 
-declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseReturn extends boolean> {
-  // `this: this` is used to mark `this` as the inherited class instance (DB or NoCacheDB)
+// Source: https://github.com/microsoft/TypeScript/issues/54451#issue-1732749888
+type Omit<T, K extends keyof T> = { [P in keyof T as P extends K ? never : P]: T[P] };
 
-  schema: Model<Document<unknown, Record<string, never>, {
-    _id: Types.ObjectId;
-    key: string;
-    value?: unknown;
-  }>>;
+
+declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseReturn extends boolean> {
+  schema: Model<{ key: string; value?: Schema.Types.Mixed }>;
 
   valueLoggingMaxJSONLength: number;
 
@@ -19,21 +17,28 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
    * @param dbConnectionString MongoDB connection string
    * @param valueLoggingMaxJSONLength default:`20`, `false` to disable value logging
    * @param debugLoggingFunction default: `console.debug` */
-  init(this: this, dbConnectionString: string, collection?: string, valueLoggingMaxJSONLength?: number | false, debugLoggingFunction?: (...str: unknown[]) => unknown): Promise<this>;
+  init(
+    dbConnectionString: string, collection?: string,
+    valueLoggingMaxJSONLength?: number | false, debugLoggingFunction?: (...str: unknown[]) => unknown
+  ): Promise<this>;
 
-  saveLog(this: this, msg: string, value?: unknown): this;
-  reduce(this: this): PromiseToggle<{ [DBK in keyof Database]: { key: DBK; value: Database[DBK] } }[keyof Database][], PromiseReturn>;
+  saveLog(msg: string, value?: unknown): this;
+  reduce(): PromiseToggle<{ [DBK in keyof Database]: { key: DBK; value: Database[DBK] } }[keyof Database][], PromiseReturn>;
 
-  get(this: this): PromiseToggle<undefined, PromiseReturn>;
-  get<DBK extends keyof Database>(this: this, db: DBK): PromiseToggle<Database[DBK], PromiseReturn>;
+  get(): PromiseToggle<undefined, PromiseReturn>;
+  get<DBK extends keyof Database>(db: DBK): PromiseToggle<Database[DBK], PromiseReturn>;
   get<
     DBK extends keyof Database, Head extends keyof Database[DBK] & string, Tail extends SettingsPaths<Database[DBK][Head]>
-  >(this: this, db: DBK, key: `${Head}.${Tail}`): PromiseToggle<GetResult<Database[DBK], `${Head}.${Tail}`>, PromiseReturn>;
-  get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: this, db: DBK, key: K): PromiseToggle<GetResult<Database[DBK], K>, PromiseReturn>;
-  get(this: this, db: unknown, key?: unknown): PromiseToggle<unknown, PromiseReturn>; // fallback
+  >(db: DBK, key: `${Head}.${Tail}`): PromiseToggle<GetResult<Database[DBK], `${Head}.${Tail}`>, PromiseReturn>;
+  get<
+    DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>
+  >(db: DBK, key: K): PromiseToggle<GetResult<Database[DBK], K>, PromiseReturn>;
+  get(db: unknown, key?: unknown): PromiseToggle<unknown, PromiseReturn>; // fallback
 
   /** @param overwrite overwrite existing collection, default: `false` */
-  set<DBK extends keyof Database>(this: this, db: DBK, value: Partial<Omit<Database[DBK], undefined>>, overwrite?: boolean): ModifyResult<Database, DBK>;
+  set<DBK extends keyof Database>(
+    db: DBK, value: Partial<Omit<Database[DBK], undefined>>, overwrite?: boolean
+  ): ModifyResult<Database, DBK>;
 
   // region update
 
@@ -51,7 +56,7 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
     K9 extends keyof Database[DBK][K1][K2][K3][K4][K5][K6][K7][K8] & string,
     K10 extends SettingsPaths<Database[DBK][K1][K2][K3][K4][K5][K6][K7][K8][K9]>
   >(
-    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}.${K9}.${K10}`,
+    db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}.${K9}.${K10}`,
     value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}.${K9}.${K10}`>, undefined>
   ): ModifyResult<Database, DBK>;
 
@@ -68,7 +73,7 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
     K8 extends keyof Database[DBK][K1][K2][K3][K4][K5][K6][K7] & string,
     K9 extends SettingsPaths<Database[DBK][K1][K2][K3][K4][K5][K6][K7][K8]>
   >(
-    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}.${K9}`,
+    db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}.${K9}`,
     value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}.${K9}`>, undefined>
   ): ModifyResult<Database, DBK>;
 
@@ -84,7 +89,7 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
     K7 extends keyof Database[DBK][K1][K2][K3][K4][K5][K6] & string,
     K8 extends SettingsPaths<Database[DBK][K1][K2][K3][K4][K5][K6][K7]>
   >(
-    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}`,
+    db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}`,
     value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}.${K8}`>, undefined>
   ): ModifyResult<Database, DBK>;
 
@@ -99,7 +104,7 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
     K6 extends keyof Database[DBK][K1][K2][K3][K4][K5] & string,
     K7 extends SettingsPaths<Database[DBK][K1][K2][K3][K4][K5][K6]>
   >(
-    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}`,
+    db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}`,
     value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}.${K7}`>, undefined>
   ): ModifyResult<Database, DBK>;
 
@@ -113,7 +118,7 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
     K5 extends keyof Database[DBK][K1][K2][K3][K4] & string,
     K6 extends SettingsPaths<Database[DBK][K1][K2][K3][K4][K5]>
   >(
-    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}`,
+    db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}`,
     value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}.${K6}`>, undefined>
   ): ModifyResult<Database, DBK>;
 
@@ -126,7 +131,7 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
     K4 extends keyof Database[DBK][K1][K2][K3] & string,
     K5 extends SettingsPaths<Database[DBK][K1][K2][K3][K4]>
   >(
-    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}`,
+    db: DBK, key: `${K1}.${K2}.${K3}.${K4}.${K5}`,
     value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}.${K5}`>, undefined>
   ): ModifyResult<Database, DBK>;
 
@@ -138,7 +143,7 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
     K3 extends keyof Database[DBK][K1][K2] & string,
     K4 extends SettingsPaths<Database[DBK][K1][K2][K3]>
   >(
-    this: this, db: DBK, key: `${K1}.${K2}.${K3}.${K4}`,
+    db: DBK, key: `${K1}.${K2}.${K3}.${K4}`,
     value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}.${K4}`>, undefined>
   ): ModifyResult<Database, DBK>;
 
@@ -149,7 +154,7 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
     K2 extends keyof Database[DBK][K1] & string,
     K3 extends SettingsPaths<Database[DBK][K1][K2]>
   >(
-    this: this, db: DBK, key: `${K1}.${K2}.${K3}`,
+    db: DBK, key: `${K1}.${K2}.${K3}`,
     value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}.${K3}`>, undefined>
   ): ModifyResult<Database, DBK>;
 
@@ -159,7 +164,7 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
     K1 extends keyof Database[DBK] & string,
     K2 extends SettingsPaths<Database[DBK][K1]>
   >(
-    this: this, db: DBK, key: `${K1}.${K2}`,
+    db: DBK, key: `${K1}.${K2}`,
     value: Omit<GetValueByKey<Database[DBK], `${K1}.${K2}`>, undefined>
   ): ModifyResult<Database, DBK>;
 
@@ -167,16 +172,16 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
   update<
     DBK extends keyof Database,
     K extends SettingsPaths<Database[DBK]>
-  >(this: this, db: DBK, key: K, value: Omit<GetValueByKey<Database[DBK], K>, undefined>): ModifyResult<Database, DBK>;
+  >(db: DBK, key: K, value: Omit<GetValueByKey<Database[DBK], K>, undefined>): ModifyResult<Database, DBK>;
 
   // endregion update
 
   push<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    this: this, db: DBK, key: K,
+    db: DBK, key: K,
     ...value: ArrayElement<GetValueByKey<Database[DBK], K>>[]
   ): ModifyResult<Database, DBK>;
   pushToSet<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    this: this, db: DBK, key: K,
+    db: DBK, key: K,
     ...value: ArrayElement<GetValueByKey<Database[DBK], K>>[]
   ): ModifyResult<Database, DBK>;
 
@@ -184,21 +189,23 @@ declare abstract class BaseDB<Database extends Record<string, unknown>, PromiseR
   /**
    * @param key **if not provided, the whole `db` gets deleted**
    * @returns `true` if the element existed */
-  delete(this: this, db?: unknown): Promise<false>;
-  delete(this: this, db: keyof Database): Promise<true>;
-  delete<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(this: this, db: DBK, key: K): Promise<K extends SettingsPaths<Database[DBK]> ? true : false>;
+  delete(db?: unknown): Promise<false>;
+  delete(db: keyof Database): Promise<true>;
+  delete<
+    DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>
+  >(db: DBK, key: K): Promise<K extends SettingsPaths<Database[DBK]> ? true : false>;
 
-  valueOf(this: this): string;
+  valueOf(): string;
 }
 
-declare class NoCacheDB<Database extends Record<string, unknown>> extends BaseDB<Database, true> {
+declare class NoCacheDB<Database extends Record<string, unknown> = Record<string, unknown>> extends BaseDB<Database, true> {
 }
 
-declare class DB<Database extends Record<string, unknown>> extends BaseDB<Database, false> {
+declare class DB<Database extends Record<string, unknown> = Record<string, unknown>> extends BaseDB<Database, false> {
   cache: Collection<keyof Database, Database[keyof Database]>;
 
-  fetchAll(this: this): Promise<this>;
-  fetch<DBK extends keyof Database>(this: this, db: DBK): Promise<Database[DBK]>;
+  fetchAll(): Promise<this>;
+  fetch<DBK extends keyof Database>(db: DBK): Promise<Database[DBK]>;
 }
 
 type PromiseToggle<T, usePromise extends boolean = false> = usePromise extends true ? Promise<T> : T;
@@ -226,8 +233,8 @@ type Primitive = string | number | boolean | bigint | Date | Set<unknown> | Map<
 type Paths<T> = T extends Primitive
   ? never
   : {
-    [K in keyof T & string]: T[K] extends Primitive ? K : K | `${K}.${Paths<T[K]>}`
-  }[keyof T & string];
+      [K in keyof T & string]: T[K] extends Primitive ? K : K | `${K}.${Paths<T[K]>}`
+    }[keyof T & string];
 
 export type SettingsPaths<T> = string extends keyof T ? Paths<T[keyof T]> : Paths<T>;
 

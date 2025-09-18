@@ -1,14 +1,15 @@
 const
-  Mongoose = require('mongoose').default.set('strictQuery', true),
   { Collection } = require('@discordjs/collection'),
+  Mongoose = require('mongoose').default.set('strictQuery', true),
+
   DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH = 20;
 
 class NoCacheDB {
-  /**
-   * @type {import('.').NoCacheDB['init']}
-   * @this {this}
-   **/
-  async init(dbConnectionString, collection = 'db-collections', valueLoggingMaxJSONLength = DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH, debugLoggingFunction = console.debug) {
+  /** @type {import('.').NoCacheDB['init']} */
+  async init(
+    dbConnectionString, collection = 'db-collections', valueLoggingMaxJSONLength = DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH,
+    debugLoggingFunction = console.debug
+  ) {
     if (Mongoose.connection.readyState != Mongoose.ConnectionStates.connected) {
       if (!dbConnectionString) throw new Error('A Connection String is required!');
       await Mongoose.connect(dbConnectionString);
@@ -25,13 +26,10 @@ class NoCacheDB {
     else this.valueLoggingMaxJSONLength = Number.isNaN(valueLoggingMaxJSONLength) ? DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH : valueLoggingMaxJSONLength;
   }
 
-  /** @type {(...str: any[]) => unknown} */
-  #logDebug;
+  /** @type {import('.').NoCacheDB['schema']} */ schema;
+  /** @type {(...str: any[]) => unknown} */ #logDebug;
 
-  /**
-   * @type {import('.').NoCacheDB['saveLog']}
-   * @this {this}
-   **/
+  /** @type {import('.').NoCacheDB['saveLog']} */
   saveLog(msg, value) {
     const jsonValue = JSON.stringify(value);
     this.#logDebug(msg + (jsonValue && this.valueLoggingMaxJSONLength >= jsonValue.length ? `, value: ${jsonValue}` : ''));
@@ -43,10 +41,14 @@ class NoCacheDB {
     return this.schema.find().select('key value -_id').exec();
   }
 
-  /** @type {import('.').NoCacheDB['get']} */
+  /**
+   * @type {import('.').NoCacheDB['get']}
+   * @param {string} db
+   * @param {string | undefined} key */
   async get(db, key) {
+    /** @type {unknown} */
     let data = (await this.schema.findOne({ key: db }).exec())?.value;
-    if (key) {
+    if (key && data) {
       for (const objKey of key.split('.')) {
         data = data?.[objKey];
         if (data === undefined) return data;
@@ -71,7 +73,11 @@ class NoCacheDB {
     return data.value;
   }
 
-  /** @type {import('.').NoCacheDB['update']} */
+  /**
+   * @type {import('.').NoCacheDB['update']}
+   * @param {string} db
+   * @param {string | undefined} key
+   * @param {unknown} value */
   async update(db, key, value) {
     if (!key) return;
 
@@ -81,21 +87,15 @@ class NoCacheDB {
     return data.value;
   }
 
-  /**
-   * @type {import('.').NoCacheDB['push']}
-   * @this {this}
-   **/
+  /** @type {import('.').NoCacheDB['push']} */
   async push(db, key, ...value) { return this.#push(false, db, key, ...value); }
 
-  /**
-   * @type {import('.').NoCacheDB['pushToSet']}
-   * @this {this}
-   **/
+  /** @type {import('.').NoCacheDB['pushToSet']} */
   async pushToSet(db, key, ...value) { return this.#push(true, db, key, ...value); }
 
   /**
    * @param {boolean} set If true, there will be no duplicates
-   * @param {string} db
+   * @param {string | undefined} db
    * @param {string} key
    * @param {any[]} value */
   async #push(set, db, key, ...value) {
@@ -104,11 +104,18 @@ class NoCacheDB {
 
     this.saveLog(`pushing data to ${db}.${key}`, values);
 
-    const data = await this.schema.findOneAndUpdate({ key: db }, { [set ? '$addToSet' : '$push']: { [`value.${key}`]: { $each: values } } }, { new: true, upsert: true }).exec();
+    const data = await this.schema.findOneAndUpdate(
+      { key: db },
+      { [set ? '$addToSet' : '$push']: { [`value.${key}`]: { $each: values } } }, { new: true, upsert: true }
+    ).exec();
+
     return data.value;
   }
 
-  /** @type {import('.').NoCacheDB['delete']} */
+  /**
+   * @type {import('.').NoCacheDB['delete']}
+   * @param {string | undefined} db
+   * @param {string | undefined} key */
   async delete(db, key) {
     if (!db) return false;
     if (key) {
@@ -130,7 +137,10 @@ class NoCacheDB {
 
 class DB extends NoCacheDB {
   /** @type {import('.').DB['init']} */
-  async init(dbConnectionString, collection = 'db-collection', valueLoggingMaxJSONLength = DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH, debugLoggingFunction = console.debug) {
+  async init(
+    dbConnectionString, collection = 'db-collection',
+    valueLoggingMaxJSONLength = DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH, debugLoggingFunction = console.debug
+  ) {
     await super.init(dbConnectionString, collection, valueLoggingMaxJSONLength, debugLoggingFunction);
     return this.fetchAll();
   }
@@ -153,10 +163,13 @@ class DB extends NoCacheDB {
 
   /** @type {import('.').DB['reduce']} */
   reduce() {
-    return this.cache.reduce((acc, value, key) => acc.push({ key, value }) && acc, []);
+    return this.cache.reduce((/** @type {{ key: string, value: unknown }[]} */ acc, value, key) => acc.push({ key, value }) && acc, []);
   }
 
-  /** @type {import('.').DB['get']} */
+  /**
+   * @type {import('.').DB['get']}
+   * @param {string} db
+   * @param {string | undefined} key */
   get(db, key) {
     let data = this.cache.get(db);
     if (key) {
@@ -177,7 +190,10 @@ class DB extends NoCacheDB {
     return data;
   }
 
-  /** @type {import('.').DB['update']} */
+  /**
+   * @type {import('.').DB['update']}
+   * @param {string} db
+   * @param {string} key */
   async update(db, key, value) {
     const data = await super.update(db, key, value);
 
@@ -201,7 +217,10 @@ class DB extends NoCacheDB {
     return data;
   }
 
-  /** @type {import('.').DB['delete']} */
+  /**
+   * @type {import('.').DB['delete']}
+   * @param {string | undefined} db
+   * @param {string | undefined} key */
   async delete(db, key) {
     if (!db) return false;
     if (key) {

@@ -22,12 +22,12 @@
   },
   "dependencies": {
     "@discordjs/collection": "^2.1.1",
-    "mongoose": "^8.16.3"
+    "mongoose": "^8.18.1"
   },
   "devDependencies": {
     "@mephisto5558/eslint-config": "latest",
-    "better-typescript-lib": "^2.11.0",
-    "eslint": "^9.31.0"
+    "@types/node": "^24.5.2",
+    "better-typescript-lib": "latest"
   },
   "repository": {
     "type": "git",
