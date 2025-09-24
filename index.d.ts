@@ -233,8 +233,8 @@ type Primitive = string | number | boolean | bigint | Date | Set<unknown> | Map<
 type Paths<T> = T extends Primitive
   ? never
   : {
-      [K in keyof T & string]: T[K] extends Primitive ? K : K | `${K}.${Paths<T[K]>}`
-    }[keyof T & string];
+    [K in keyof T & string]: T[K] extends Primitive ? K : K | `${K}.${Paths<T[K]>}`
+  }[keyof T & string];
 
 export type SettingsPaths<T> = string extends keyof T ? Paths<T[keyof T]> : Paths<T>;
 
