@@ -1,40 +1,44 @@
 {
   "name": "@mephisto5558/mongoose-db",
   "version": "3.2.0",
-  "scripts": {
-    "test": "echo \"Error: no test specified\""
-  },
   "description": "A DB class for Mongoose/MongoDB with and without cache, with flattend access.",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "files": [
-    "index.js",
-    "index.d.ts"
-  ],
   "keywords": [
+    "db",
+    "database",
     "mongodb",
     "mongoose"
   ],
-  "author": "Mephisto5558",
-  "license": "MIT",
-  "engines": {
-    "node": ">=20.11.0"
-  },
-  "dependencies": {
-    "@discordjs/collection": "^2.1.1",
-    "mongoose": "^8.18.1"
-  },
-  "devDependencies": {
-    "@mephisto5558/eslint-config": "latest",
-    "@types/node": "^24.5.2",
-    "better-typescript-lib": "latest"
+  "homepage": "https://github.com/Mephisto5558/Mongoose-DB#readme",
+  "bugs": {
+    "url": "https://github.com/Mephisto5558/Mongoose-DB/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Mephisto5558/Mongoose-DB.git"
   },
-  "bugs": {
-    "url": "https://github.com/Mephisto5558/Mongoose-DB/issues"
+  "license": "MIT",
+  "author": "Mephisto5558",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\"",
+    "watch": "tsc --watch"
   },
-  "homepage": "https://github.com/Mephisto5558/Mongoose-DB#readme"
+  "dependencies": {
+    "@discordjs/collection": "^2.1.x",
+    "mongoose": "^8.20.x"
+  },
+  "devDependencies": {
+    "@mephisto5558/eslint-config": "latest",
+    "@types/node": "20.x",
+    "typescript": "latest"
+  },
+  "engines": {
+    "node": ">=20.11.0"
+  }
 }
