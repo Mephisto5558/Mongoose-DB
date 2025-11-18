@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@mephisto5558/eslint-config": "latest",
-    "@types/node": "20.x",
+    "@types/node": "24.x",
     "typescript": "latest"
   },
   "engines": {
