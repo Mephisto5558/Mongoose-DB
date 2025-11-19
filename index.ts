@@ -12,6 +12,8 @@ const DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH = 20;
 type DbDocument = { key: string; value: Record<string, Schema.Types.Mixed> } & Document;
 
 // #region typing helpers
+type PossiblePromise<T> = Promise<T> | T;
+
 export type GetValueByKey<T, K extends string>
   = T extends unknown
     ? K extends `${infer Head}.${infer Tail}`
@@ -57,7 +59,63 @@ type GetResult<T, K extends string>
 
 // #endregion typing helpers
 
-export class NoCacheDB<Database extends Record<string, unknown> = Record<string, unknown>> {
+/* eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- this is correct here */
+export interface AnyDB<
+  Database extends Record<string, unknown> = Record<string, unknown>
+> {
+  /* eslint-disable @typescript-eslint/no-duplicate-type-constituents -- keep types the exact same as `DB` and `NoCacheDB`. */
+  model: DB<Database>['model'] | NoCacheDB<Database>['model'];
+  valueLoggingMaxJSONLength: DB<Database>['valueLoggingMaxJSONLength'] | NoCacheDB<Database>['valueLoggingMaxJSONLength'];
+
+  init: DB<Database>['init'] | NoCacheDB<Database>['init'];
+  saveLog: DB<Database>['saveLog'] | NoCacheDB<Database>['saveLog'];
+
+  reduce(): Promise<{
+    [DBK in keyof Database]: { key: DBK; value: Database[DBK] };
+  }[keyof Database][]>;
+
+  get(): PossiblePromise<undefined>;
+  get<DBK extends keyof Database>(db: DBK): PossiblePromise<Database[DBK]>;
+  get<DBK extends keyof Database, Head extends keyof Database[DBK] & string, Tail extends SettingsPaths<Database[DBK][Head]>>(
+    db: DBK, key: `${Head}.${Tail}`
+  ): PossiblePromise<GetResult<Database[DBK], `${Head}.${Tail}`>>;
+  get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
+    db: DBK, key: K
+  ): PossiblePromise<GetResult<Database[DBK], K>>;
+  get(db?: string, key?: string): PossiblePromise<unknown>; // fallback
+  get(db?: keyof Database, key?: string): PossiblePromise<unknown>;
+
+  set<DBK extends keyof Database>(
+    db: DBK, value: Partial<Database[DBK]>, overwrite?: boolean
+  ): PossiblePromise<Database[DBK]>;
+  set(db: string, value: unknown, overwrite?: boolean): PossiblePromise<unknown>;
+
+  update<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
+    db: DBK, key: K, value: Exclude<GetValueByKey<Database[DBK], K>, undefined>
+  ): PossiblePromise<Database[DBK]>;
+  update(db: string, key: string, value: unknown): PossiblePromise<unknown>;
+
+  push<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
+    db: DBK, key: K, ...value: GetValueByKey<Database[DBK], K> extends (infer E)[] ? E[] : never
+  ): PossiblePromise<Database[DBK]>;
+  push(db: string, key: string, ...value: unknown[]): PossiblePromise<unknown>;
+
+  pushToSet<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
+    db: DBK, key: K, ...value: GetValueByKey<Database[DBK], K> extends (infer E)[] ? E[] : never
+  ): PossiblePromise<Database[DBK]>;
+  pushToSet(db: string, key: string, ...value: unknown[]): PossiblePromise<unknown>;
+
+  delete(db?: string): PossiblePromise<boolean>;
+  delete(db: keyof Database): PossiblePromise<true>;
+  delete<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
+    db: DBK, key: K
+  ): PossiblePromise<K extends SettingsPaths<Database[DBK]> ? true : false>;
+
+  valueOf(): string;
+  /* eslint-enable @typescript-eslint/no-duplicate-type-constituents */
+}
+
+export class NoCacheDB<Database extends Record<string, unknown> = Record<string, unknown>> implements AnyDB<Database> {
   model!: Model<DbDocument>; // is initialized in init()
   valueLoggingMaxJSONLength: number = DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH;
   #logDebug: (...str: unknown[]) => unknown = console.debug;
@@ -94,6 +152,7 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
     return this.model.find().select('key value -_id').exec() as unknown as ReturnType<NoCacheDB<Database>['reduce']>; // this is the correct type
   }
 
+  async get(): Promise<undefined>;
   async get<DBK extends keyof Database>(db: DBK): Promise<Database[DBK]>;
   async get<DBK extends keyof Database, Head extends keyof Database[DBK] & string, Tail extends SettingsPaths<Database[DBK][Head]>>(
     db: DBK, key: `${Head}.${Tail}`
@@ -101,8 +160,7 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
   async get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K
   ): Promise<GetResult<Database[DBK], K>>;
-  async get(db: string, key?: string): Promise<unknown>; // fallback
-  async get(db: string, key?: string): Promise<unknown> {
+  async get(db?: string, key?: string): Promise<unknown> {
     if (!db) return;
 
     let data = (await this.model.findOne({ key: db }).exec())?.value as unknown;
@@ -172,8 +230,8 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
     return data.value;
   }
 
-  async delete(db: string): Promise<boolean>;
-  async delete(db?: unknown): Promise<false>;
+  delete(db?: string): Promise<boolean>;
+  delete(db: keyof Database): Promise<true>;
   async delete<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K
   ): Promise<K extends SettingsPaths<Database[DBK]> ? true : false>;
@@ -197,7 +255,7 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
   }
 }
 
-export class DB<Database extends Record<string, unknown> = Record<string, unknown>> extends NoCacheDB<Database> {
+export class DB<Database extends Record<string, unknown> = Record<string, unknown>> extends NoCacheDB<Database> implements AnyDB<Database> {
   cache = new DiscordCollection<keyof Database, Database[keyof Database]>();
 
   override async init(...superParams: Parameters<NoCacheDB<Database>['init']>): Promise<this> {
@@ -295,7 +353,7 @@ export class DB<Database extends Record<string, unknown> = Record<string, unknow
     return data;
   }
 
-  override async delete(db?: unknown): Promise<false>;
+  override async delete(db?: string): Promise<boolean>;
   override async delete(db: keyof Database): Promise<true>;
   override async delete<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K
