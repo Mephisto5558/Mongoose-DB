@@ -87,29 +87,29 @@ export interface AnyDB<
 
   set<DBK extends keyof Database>(
     db: DBK, value: Partial<Database[DBK]>, overwrite?: boolean
-  ): PossiblePromise<Database[DBK]>;
-  set(db: string, value: unknown, overwrite?: boolean): PossiblePromise<unknown>;
+  ): Promise<Database[DBK]>;
+  set(db: string, value: unknown, overwrite?: boolean): Promise<unknown>;
 
   update<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K, value: Exclude<GetValueByKey<Database[DBK], K>, undefined>
-  ): PossiblePromise<Database[DBK]>;
-  update(db: string, key: string, value: unknown): PossiblePromise<unknown>;
+  ): Promise<Database[DBK]>;
+  update(db: string, key: string, value: unknown): Promise<unknown>;
 
   push<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K, ...value: GetValueByKey<Database[DBK], K> extends (infer E)[] ? E[] : never
-  ): PossiblePromise<Database[DBK]>;
-  push(db: string, key: string, ...value: unknown[]): PossiblePromise<unknown>;
+  ): Promise<Database[DBK]>;
+  push(db: string, key: string, ...value: unknown[]): Promise<unknown>;
 
   pushToSet<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K, ...value: GetValueByKey<Database[DBK], K> extends (infer E)[] ? E[] : never
-  ): PossiblePromise<Database[DBK]>;
-  pushToSet(db: string, key: string, ...value: unknown[]): PossiblePromise<unknown>;
+  ): Promise<Database[DBK]>;
+  pushToSet(db: string, key: string, ...value: unknown[]): Promise<unknown>;
 
-  delete(db?: string): PossiblePromise<boolean>;
-  delete(db: keyof Database): PossiblePromise<true>;
+  delete(db?: string): Promise<boolean>;
+  delete(db: keyof Database): Promise<true>;
   delete<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K
-  ): PossiblePromise<K extends SettingsPaths<Database[DBK]> ? true : false>;
+  ): Promise<K extends SettingsPaths<Database[DBK]> ? true : false>;
 
   valueOf(): string;
   /* eslint-enable @typescript-eslint/no-duplicate-type-constituents */
