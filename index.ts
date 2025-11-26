@@ -14,21 +14,6 @@ type DbDocument = { key: string; value: Record<string, Schema.Types.Mixed> } & D
 // #region typing helpers
 type PossiblePromise<T> = Promise<T> | T;
 
-export type GetValueByKey<T, K extends string>
-  = T extends unknown
-    ? K extends `${infer Head}.${infer Tail}`
-      ? Head extends keyof T
-        ? GetValueByKey<T[Head], Tail>
-        : string extends keyof T
-          ? GetValueByKey<T[string], Tail>
-          : undefined
-      : K extends keyof T
-        ? T[K]
-        : string extends keyof T
-          ? T[string]
-          : undefined
-    : never;
-
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any -- `any` is required here */
 type Primitive = string | number | boolean | bigint | Date | Set<unknown> | Map<unknown, unknown> | undefined | null | any[];
 
@@ -38,24 +23,18 @@ type Paths<T> = T extends Primitive
       [K in keyof T & string]: T[K] extends Primitive ? K : K | `${K}.${Paths<T[K]>}`
     }[keyof T & string];
 
-export type SettingsPaths<T> = string extends keyof T ? Paths<T[keyof T]> : Paths<T>;
+export type SettingsPaths<T> = T extends Record<string, infer _V> ? string : Paths<T>;
 
-/** Returns true if the path involves an unchecked indexed access (e.g., through a Record). */
-type IsUncheckedIndexedAccess<T, K extends string>
-  = K extends `${infer Head}.${infer Tail}`
-    ? T extends Record<string, infer _V>
-      ? true
-      : Head extends keyof T
-        ? IsUncheckedIndexedAccess<T[Head], Tail>
-        : false
-    : T extends Record<string, infer _V>
-      ? true
-      : false;
+type HasIndexSignature<T> = string extends keyof NonNullable<T> ? true : number extends keyof NonNullable<T> ? true : false;
 
-type GetResult<T, K extends string>
-  = GetValueByKey<T, K> extends infer RawType
-    ? IsUncheckedIndexedAccess<T, K> extends true ? RawType | undefined : RawType
-    : never;
+export type GetResult<T, K extends string>
+  = K extends `${infer Head}.${infer Tail}` // Recursive case
+    ? Head extends keyof T
+      ? GetResult<NonNullable<T[Head]>, Tail> | (HasIndexSignature<T> extends true ? undefined : never)
+      : undefined
+    : K extends keyof T // Base case
+      ? T[K] | (HasIndexSignature<T> extends true ? undefined : never)
+      : undefined;
 
 // #endregion typing helpers
 
@@ -76,9 +55,6 @@ export interface AnyDB<
 
   get(): PossiblePromise<undefined>;
   get<DBK extends keyof Database>(db: DBK): PossiblePromise<Database[DBK]>;
-  get<DBK extends keyof Database, Head extends keyof Database[DBK] & string, Tail extends SettingsPaths<Database[DBK][Head]>>(
-    db: DBK, key: `${Head}.${Tail}`
-  ): PossiblePromise<GetResult<Database[DBK], `${Head}.${Tail}`>>;
   get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K
   ): PossiblePromise<GetResult<Database[DBK], K>>;
@@ -91,17 +67,17 @@ export interface AnyDB<
   set(db: string, value: unknown, overwrite?: boolean): Promise<unknown>;
 
   update<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    db: DBK, key: K, value: Exclude<GetValueByKey<Database[DBK], K>, undefined>
+    db: DBK, key: K, value: Exclude<GetResult<Database[DBK], K>, undefined>
   ): Promise<Database[DBK]>;
   update(db: string, key: string, value: unknown): Promise<unknown>;
 
   push<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    db: DBK, key: K, ...value: GetValueByKey<Database[DBK], K> extends (infer E)[] ? E[] : never
+    db: DBK, key: K, ...value: GetResult<Database[DBK], K> extends (infer E)[] ? E[] : never
   ): Promise<Database[DBK]>;
   push(db: string, key: string, ...value: unknown[]): Promise<unknown>;
 
   pushToSet<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    db: DBK, key: K, ...value: GetValueByKey<Database[DBK], K> extends (infer E)[] ? E[] : never
+    db: DBK, key: K, ...value: GetResult<Database[DBK], K> extends (infer E)[] ? E[] : never
   ): Promise<Database[DBK]>;
   pushToSet(db: string, key: string, ...value: unknown[]): Promise<unknown>;
 
@@ -154,9 +130,6 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
 
   async get(): Promise<undefined>;
   async get<DBK extends keyof Database>(db: DBK): Promise<Database[DBK]>;
-  async get<DBK extends keyof Database, Head extends keyof Database[DBK] & string, Tail extends SettingsPaths<Database[DBK][Head]>>(
-    db: DBK, key: `${Head}.${Tail}`
-  ): Promise<GetResult<Database[DBK], `${Head}.${Tail}`>>;
   async get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K
   ): Promise<GetResult<Database[DBK], K>>;
@@ -190,7 +163,7 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
   }
 
   async update<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    db: DBK, key: K, value: Exclude<GetValueByKey<Database[DBK], K>, undefined>
+    db: DBK, key: K, value: Exclude<GetResult<Database[DBK], K>, undefined>
   ): Promise<Database[DBK]>;
   async update(db: string, key: string, value: unknown): Promise<unknown> {
     if (!key) return;
@@ -202,14 +175,14 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
   }
 
   async push<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    db: DBK, key: K, ...value: GetValueByKey<Database[DBK], K> extends (infer E)[] ? E[] : never
+    db: DBK, key: K, ...value: GetResult<Database[DBK], K> extends (infer E)[] ? E[] : never
   ): Promise<Database[DBK]>;
   async push(db: string, key: string, ...value: unknown[]): Promise<unknown> {
     return this.#push(false, db, key, ...value);
   }
 
   async pushToSet<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    db: DBK, key: K, ...value: GetValueByKey<Database[DBK], K> extends (infer E)[] ? E[] : never
+    db: DBK, key: K, ...value: GetResult<Database[DBK], K> extends (infer E)[] ? E[] : never
   ): Promise<Database[DBK]>;
   async pushToSet(db: string, key: string, ...value: unknown[]): Promise<unknown> {
     return this.#push(true, db, key, ...value);
@@ -290,11 +263,6 @@ export class DB<Database extends Record<string, unknown> = Record<string, unknow
   override get<DBK extends keyof Database>(db: DBK): Database[DBK];
 
   // @ts-expect-error overriding with a non-Promise return, formatted this way to not miss other ts errors.
-  override get<DBK extends keyof Database, Head extends keyof Database[DBK] & string, Tail extends SettingsPaths<Database[DBK][Head]>>(
-    db: DBK, key: `${Head}.${Tail}`
-  ): GetResult<Database[DBK], `${Head}.${Tail}`>;
-
-  // @ts-expect-error overriding with a non-Promise return, formatted this way to not miss other ts errors.
   override get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K
   ): GetResult<Database[DBK], K>;
@@ -327,7 +295,7 @@ export class DB<Database extends Record<string, unknown> = Record<string, unknow
   }
 
   override async update<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    db: DBK, key: K, value: Exclude<GetValueByKey<Database[DBK], K>, undefined>
+    db: DBK, key: K, value: Exclude<GetResult<Database[DBK], K>, undefined>
   ): Promise<Database[DBK]> {
     const data = await super.update(db, key, value);
 
@@ -336,7 +304,7 @@ export class DB<Database extends Record<string, unknown> = Record<string, unknow
   }
 
   override async push<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    db: DBK, key: K, ...value: GetValueByKey<Database[DBK], K> extends (infer E)[] ? E[] : never
+    db: DBK, key: K, ...value: GetResult<Database[DBK], K> extends (infer E)[] ? E[] : never
   ): Promise<Database[DBK]> {
     const data = await super.push(db, key, ...value);
     this.cache.set(db, data);
@@ -345,7 +313,7 @@ export class DB<Database extends Record<string, unknown> = Record<string, unknow
   }
 
   override async pushToSet<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
-    db: DBK, key: K, ...value: GetValueByKey<Database[DBK], K> extends (infer E)[] ? E[] : never
+    db: DBK, key: K, ...value: GetResult<Database[DBK], K> extends (infer E)[] ? E[] : never
   ): Promise<Database[DBK]> {
     const data = await super.pushToSet(db, key, ...value);
     this.cache.set(db, data as Database[DBK]);
