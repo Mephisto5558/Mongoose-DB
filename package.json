@@ -1,6 +1,6 @@
 {
   "name": "@mephisto5558/mongoose-db",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "A DB class for Mongoose/MongoDB with and without cache, with flattend access.",
   "keywords": [
     "db",
