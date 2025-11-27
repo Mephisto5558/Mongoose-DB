@@ -29,11 +29,11 @@ type HasIndexSignature<T> = string extends keyof NonNullable<T> ? true : number 
 
 export type GetResult<T, K extends string>
   = K extends `${infer Head}.${infer Tail}` // Recursive case
-    ? Head extends keyof T
-      ? GetResult<NonNullable<T[Head]>, Tail> | (HasIndexSignature<T> extends true ? undefined : never)
+    ? Head extends keyof NonNullable<T>
+      ? GetResult<NonNullable<T>[Head], Tail> | (HasIndexSignature<T> extends true ? undefined : never)
       : undefined
-    : K extends keyof T // Base case
-      ? T[K] | (HasIndexSignature<T> extends true ? undefined : never)
+    : K extends keyof NonNullable<T> // Base case
+      ? NonNullable<T>[K] | (HasIndexSignature<T> extends true ? undefined : never)
       : undefined;
 
 // #endregion typing helpers
