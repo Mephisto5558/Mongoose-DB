@@ -23,7 +23,13 @@ type Paths<T> = T extends Primitive
       [K in keyof T & string]: T[K] extends Primitive ? K : K | `${K}.${Paths<T[K]>}`
     }[keyof T & string];
 
-export type SettingsPaths<T> = T extends Record<string, infer _V> ? string : Paths<T>;
+export type SettingsPaths<T> = Paths<T> | (
+  HasIndexSignature<T> extends true
+    ? string extends keyof T
+      ? `${string}.${Paths<T[string]>}`
+      : never
+    : never
+);
 
 type HasIndexSignature<T> = string extends keyof NonNullable<T> ? true : number extends keyof NonNullable<T> ? true : false;
 
@@ -55,6 +61,9 @@ export interface AnyDB<
 
   get(): PossiblePromise<undefined>;
   get<DBK extends keyof Database>(db: DBK): PossiblePromise<Database[DBK]>;
+  get<DBK extends keyof Database, K extends keyof Database[DBK] & string>(
+    db: DBK, key: K
+  ): PossiblePromise<GetResult<Database[DBK], K>>;
   get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K
   ): PossiblePromise<GetResult<Database[DBK], K>>;
@@ -130,6 +139,9 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
 
   async get(): Promise<undefined>;
   async get<DBK extends keyof Database>(db: DBK): Promise<Database[DBK]>;
+  async get<DBK extends keyof Database, K extends keyof Database[DBK] & string>(
+    db: DBK, key: K
+  ): Promise<GetResult<Database[DBK], K>>;
   async get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K
   ): Promise<GetResult<Database[DBK], K>>;
@@ -247,7 +259,7 @@ export class DB<Database extends Record<string, unknown> = Record<string, unknow
     return value;
   }
 
-  // @ts-expect-error overriding with a non-Promise return, formatted this way to not miss other ts errors.
+  // @ts-expect-error overriding with a non-Promise return
   override reduce(
   ): { key: keyof Database; value: Database[keyof Database] }[] {
     return this.cache.reduce<{ key: keyof Database; value: Database[keyof Database] }[]>((acc, value, key) => {
@@ -256,21 +268,26 @@ export class DB<Database extends Record<string, unknown> = Record<string, unknow
     }, []);
   }
 
-  // @ts-expect-error overriding with a non-Promise return, formatted this way to not miss other ts errors.
+  // @ts-expect-error overriding with a non-Promise return
   override get(): undefined;
 
-  // @ts-expect-error overriding with a non-Promise return, formatted this way to not miss other ts errors.
+  // @ts-expect-error overriding with a non-Promise return
   override get<DBK extends keyof Database>(db: DBK): Database[DBK];
 
-  // @ts-expect-error overriding with a non-Promise return, formatted this way to not miss other ts errors.
+  // @ts-expect-error overriding with a non-Promise return
+  override get<DBK extends keyof Database, K extends keyof Database[DBK] & string>(
+    db: DBK, key: K
+  ): GetResult<Database[DBK], K>;
+
+  // @ts-expect-error overriding with a non-Promise return
   override get<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K
   ): GetResult<Database[DBK], K>;
 
-  // @ts-expect-error overriding with a non-Promise return, formatted this way to not miss other ts errors.
+  // @ts-expect-error overriding with a non-Promise return
   override get(db?: string, key?: string): unknown; // fallback
 
-  // @ts-expect-error overriding with a non-Promise return, formatted this way to not miss other ts errors.
+  // @ts-expect-error overriding with a non-Promise return
   override get(db?: keyof Database, key?: string): unknown {
     if (!db) return;
 
