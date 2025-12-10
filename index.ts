@@ -3,13 +3,14 @@
 import { Collection as DiscordCollection } from '@discordjs/collection';
 import Mongoose from 'mongoose';
 
-import type { Document, Model, Schema, UpdateQuery } from 'mongoose';
+import type { Document, Model, UpdateQuery } from 'mongoose';
 
 Mongoose.set('strictQuery', true);
 
 const DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH = 20;
 
-type DbDocument = { key: string; value: Record<string, Schema.Types.Mixed> } & Document;
+type DBType = Record<string, Record<string, unknown>>;
+type DbDocument<Database extends DBType> = { [K in keyof Database]: Database[K] } & Document;
 
 // #region typing helpers
 type PossiblePromise<T> = Promise<T> | T;
@@ -45,9 +46,7 @@ export type GetResult<T, K extends string>
 // #endregion typing helpers
 
 /* eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- this is correct here */
-export interface AnyDB<
-  Database extends Record<string, unknown> = Record<string, unknown>
-> {
+export interface AnyDB<Database extends DBType = DBType> {
   /* eslint-disable @typescript-eslint/no-duplicate-type-constituents -- keep types the exact same as `DB` and `NoCacheDB`. */
   model: DB<Database>['model'] | NoCacheDB<Database>['model'];
   valueLoggingMaxJSONLength: DB<Database>['valueLoggingMaxJSONLength'] | NoCacheDB<Database>['valueLoggingMaxJSONLength'];
@@ -100,8 +99,8 @@ export interface AnyDB<
   /* eslint-enable @typescript-eslint/no-duplicate-type-constituents */
 }
 
-export class NoCacheDB<Database extends Record<string, unknown> = Record<string, unknown>> implements AnyDB<Database> {
-  model!: Model<DbDocument>; // is initialized in init()
+export class NoCacheDB<Database extends DBType = DBType> implements AnyDB<Database> {
+  model!: Model<DbDocument<Database>>; // is initialized in init()
   valueLoggingMaxJSONLength: number = DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH;
   #logDebug: (...str: unknown[]) => unknown = console.debug;
 
@@ -116,7 +115,8 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
       await Mongoose.connect(dbConnectionString);
     }
 
-    this.model = Mongoose.model<DbDocument>(collection, new Mongoose.Schema({
+    // @ts-expect-error Being more general here as we don't have the types on runtime
+    this.model = Mongoose.model<DbDocument<DBType>>(collection, new Mongoose.Schema({
       key: String,
       value: Mongoose.SchemaTypes.Mixed
     }));
@@ -167,7 +167,7 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
 
     this.saveLog(`setting collection ${db}, ${overwrite ? 'overwriting existing data' : ''}`, value);
 
-    const update: UpdateQuery<DbDocument> = { $set: { value } };
+    const update: UpdateQuery<DbDocument<Database>> = { $set: { value } };
     if (!overwrite) update.$setOnInsert = { key: db };
 
     const data = await this.model.findOneAndUpdate({ key: db }, update, { new: true, upsert: true }).exec();
@@ -182,7 +182,10 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
 
     this.saveLog(`updating ${db}.${key}`, value);
 
-    const data = await this.model.findOneAndUpdate({ key: db }, { $set: { [`value.${key}`]: value } }, { new: true, upsert: true }).exec();
+    const data = await this.model.findOneAndUpdate(
+      { key: db }, { $set: { [`value.${key}`]: value } } as UpdateQuery<DbDocument<Database>>,
+      { new: true, upsert: true }
+    ).exec();
     return data.value;
   }
 
@@ -207,8 +210,7 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
     this.saveLog(`pushing data to ${db}.${key}`, values);
 
     const data = await this.model.findOneAndUpdate(
-      { key: db },
-      { [set ? '$addToSet' : '$push']: { [`value.${key}`]: { $each: values } } },
+      { key: db }, { [set ? '$addToSet' : '$push']: { [`value.${key}`]: { $each: values } } } as UpdateQuery<DbDocument<Database>>,
       { new: true, upsert: true }
     ).exec();
 
@@ -226,7 +228,10 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
     if (key) {
       this.saveLog(`deleting ${db}.${key}`);
 
-      await this.model.findOneAndUpdate({ key: db }, { $unset: { [`value.${key}`]: '' } }, { new: true, upsert: true }).exec();
+      await this.model.findOneAndUpdate(
+        { key: db }, { $unset: { [`value.${key}`]: '' } } as UpdateQuery<DbDocument<Database>>,
+        { new: true, upsert: true }
+      ).exec();
       return true;
     }
 
@@ -240,7 +245,7 @@ export class NoCacheDB<Database extends Record<string, unknown> = Record<string,
   }
 }
 
-export class DB<Database extends Record<string, unknown> = Record<string, unknown>> extends NoCacheDB<Database> implements AnyDB<Database> {
+export class DB<Database extends DBType = DBType> extends NoCacheDB<Database> implements AnyDB<Database> {
   cache = new DiscordCollection<keyof Database, Database[keyof Database]>();
 
   override async init(...superParams: Parameters<NoCacheDB<Database>['init']>): Promise<this> {
@@ -333,7 +338,7 @@ export class DB<Database extends Record<string, unknown> = Record<string, unknow
     db: DBK, key: K, ...value: GetResult<Database[DBK], K> extends (infer E)[] ? E[] : never
   ): Promise<Database[DBK]> {
     const data = await super.pushToSet(db, key, ...value);
-    this.cache.set(db, data as Database[DBK]);
+    this.cache.set(db, data);
 
     return data;
   }
@@ -348,7 +353,10 @@ export class DB<Database extends Record<string, unknown> = Record<string, unknow
     if (key) {
       this.saveLog(`deleting ${db}.${key}`);
 
-      const data = await this.model.findOneAndUpdate({ key: db }, { $unset: { [`value.${key}`]: '' } }, { new: true, upsert: true }).exec();
+      const data = await this.model.findOneAndUpdate(
+        { key: db }, { $unset: { [`value.${key}`]: '' } } as UpdateQuery<DbDocument<Database>>,
+        { new: true, upsert: true }
+      ).exec();
       this.cache.set(db as keyof Database, data.value as Database[keyof Database]);
       return true;
     }
