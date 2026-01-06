@@ -34,6 +34,7 @@
     "mongoose": "9.1.x"
   },
   "devDependencies": {
+    "@mephisto5558/better-types": "latest",
     "@mephisto5558/eslint-config": "latest",
     "@types/node": "20.x",
     "typescript": "latest"
