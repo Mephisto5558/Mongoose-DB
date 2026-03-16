@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@discordjs/collection": "^2.1.x",
-    "mongoose": "9.2.x"
+    "mongoose": "9.3.x"
   },
   "devDependencies": {
     "@mephisto5558/better-types": "latest",
