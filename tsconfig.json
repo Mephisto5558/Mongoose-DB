@@ -10,14 +10,13 @@
     "lib": [
       "ESNext"
     ],
-    "allowJs": false,
     "declaration": true,
     "exactOptionalPropertyTypes": true,
     "libReplacement": true,
+    "noEmit": true,
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
     "noUncheckedSideEffectImports": true,
-    "outDir": "dist",
     "skipLibCheck": true,
     "strict": true
   }

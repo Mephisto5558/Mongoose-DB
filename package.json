@@ -3,8 +3,8 @@
   "version": "4.0.4",
   "description": "A DB class for Mongoose/MongoDB with and without cache, with flattend access.",
   "keywords": [
-    "db",
     "database",
+    "db",
     "mongodb",
     "mongoose"
   ],
@@ -25,21 +25,29 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "npm run clean && tsc --build src",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true });\"",
+    "lint": "eslint . --cache --cache-location ./node_modules/.cache/eslint/ >eslint.log",
     "test": "echo \"Error: no test specified\"",
-    "watch": "tsc --watch"
+    "watch": "npm run build -- --watch"
   },
   "dependencies": {
     "@discordjs/collection": "^2.1.x",
     "mongoose": "9.3.x"
   },
   "devDependencies": {
-    "@mephisto5558/better-types": "latest",
     "@mephisto5558/eslint-config": "latest",
     "@types/node": "20.x",
     "typescript": "latest"
   },
   "engines": {
     "node": ">=20.11.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "onFail": "error",
+      "version": ">=20.11.0"
+    }
   }
 }
