@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 
-import type * as __ from '@mephisto5558/better-types'; /* eslint-disable-line import-x/order, import-x/no-namespace -- load in global definitions */
-
 import { Collection as DiscordCollection } from '@discordjs/collection';
 import Mongoose from 'mongoose';
 
