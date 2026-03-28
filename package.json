@@ -22,10 +22,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
+    "!**/*.tsbuildinfo",
     "dist"
   ],
   "scripts": {
-    "build": "npm run clean && tsc --build src",
+    "build": "npm run clean && tsc -p ./tsconfig.build.json",
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true });\"",
     "lint": "eslint . --cache --cache-location ./node_modules/.cache/eslint/ >eslint.log",
     "test": "echo \"Error: no test specified\"",
@@ -37,8 +38,7 @@
   },
   "devDependencies": {
     "@mephisto5558/eslint-config": "latest",
-    "@types/node": "20.x",
-    "typescript": "latest"
+    "@types/node": "20.x"
   },
   "engines": {
     "node": ">=20.11.0"
