@@ -29,8 +29,8 @@ This module provides a `DB` and a `NoCacheDB` class for MongoDB operations. The 
 - Logging operations and values.
 
 ## Installation
-```
-$ npm install @mephisto5558/mongoose-db
+```bash
+npm install @mephisto5558/mongoose-db
 ```
 
 ## How to Use
