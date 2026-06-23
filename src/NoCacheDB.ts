@@ -36,8 +36,8 @@ export default class NoCacheDB<Database extends DBType = DBType> implements AnyD
         return result;
       }
 
-      for (const temporalClass of temporalClasses) {
-        if (!(obj instanceof temporalClass)) continue;
+      for (const TemporalClass of temporalClasses) {
+        if (!(obj instanceof TemporalClass)) continue;
 
         return {
           $temporal: obj.constructor.name as SerializedTemporal['$temporal'],
