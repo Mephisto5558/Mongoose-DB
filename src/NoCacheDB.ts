@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/filename-case -- class-only export */
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- needed for dynamic logic */
 
 import Mongoose, { ConnectionStates, Schema, SchemaTypes } from 'mongoose';
 import { DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH, supportedTemporals } from './utils.ts';
@@ -11,33 +11,6 @@ const temporalClasses = supportedTemporals ? Object.values(supportedTemporals) :
 
 
 export default class NoCacheDB<Database extends DBType = DBType> implements AnyDB<Database> {
-  model!: Model<DBDocument<Database>>; // is initialized in init()
-  valueLoggingMaxJSONLength: number = DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH;
-  #logDebug: (...str: unknown[]) => unknown = console.debug;
-
-  async init(
-    dbConnectionString: string,
-    collection = 'db-collections',
-    valueLoggingMaxJSONLength?: number | false,
-    debugLoggingFunction?: (...str: unknown[]) => unknown
-  ): Promise<this> {
-    if (Mongoose.connection.readyState !== ConnectionStates.connected) {
-      if (!dbConnectionString) throw new Error('A Connection String is required!');
-      await Mongoose.connect(dbConnectionString);
-    }
-
-    // @ts-expect-error Being more general here as we don't have the types on runtime
-    this.model = Mongoose.model<DBDocument<DBType>>(collection, new Schema({
-      key: String,
-      value: SchemaTypes.Mixed
-    }));
-
-    if (debugLoggingFunction) this.#logDebug = debugLoggingFunction;
-    if (valueLoggingMaxJSONLength !== undefined) this.valueLoggingMaxJSONLength = valueLoggingMaxJSONLength || 0;
-
-    return this;
-  }
-
   protected static serialize(obj: unknown): unknown {
     return this.#serializeTemporal(obj);
   }
@@ -96,6 +69,34 @@ export default class NoCacheDB<Database extends DBType = DBType> implements AnyD
     }
 
     return obj as Ret;
+  }
+
+
+  model!: Model<DBDocument<Database>>; // is initialized in init()
+  valueLoggingMaxJSONLength: number = DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH;
+  #logDebug: (...str: unknown[]) => unknown = console.debug;
+
+  async init(
+    dbConnectionString: string,
+    collection = 'db-collections',
+    valueLoggingMaxJSONLength?: number | false,
+    debugLoggingFunction?: (...str: unknown[]) => unknown
+  ): Promise<this> {
+    if (Mongoose.connection.readyState !== ConnectionStates.connected) {
+      if (!dbConnectionString) throw new Error('A Connection String is required!');
+      await Mongoose.connect(dbConnectionString);
+    }
+
+    // @ts-expect-error Being more general here as we don't have the types on runtime
+    this.model = Mongoose.model<DBDocument<DBType>>(collection, new Schema({
+      key: String,
+      value: SchemaTypes.Mixed
+    }, { strictQuery: true }));
+
+    if (debugLoggingFunction) this.#logDebug = debugLoggingFunction;
+    if (valueLoggingMaxJSONLength !== undefined) this.valueLoggingMaxJSONLength = valueLoggingMaxJSONLength || 0;
+
+    return this;
   }
 
   saveLog(msg: string, value?: unknown): this {
@@ -177,21 +178,6 @@ export default class NoCacheDB<Database extends DBType = DBType> implements AnyD
     return this.#push(true, db, key, ...value);
   }
 
-  async #push(set: boolean, db: string, key: string, ...value: unknown[]): Promise<unknown> {
-    const values = value.length === 1 && Array.isArray(value[0]) ? value[0] : value;
-    if (!db || !values.length) return;
-
-    this.saveLog(`pushing data to ${db}.${key}`, values);
-
-    const data = await this.model.findOneAndUpdate(
-      { key: db },
-      { [set ? '$addToSet' : '$push']: { [`value.${key}`]: { $each: NoCacheDB.serialize(values) } } } as UpdateQuery<DBDocument<Database>>,
-      { new: true, upsert: true }
-    ).exec();
-
-    return NoCacheDB.deserialize(data.value);
-  }
-
   delete(db?: string): Promise<boolean>;
   delete(db: keyof Database): Promise<true>;
   async delete<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
@@ -217,5 +203,20 @@ export default class NoCacheDB<Database extends DBType = DBType> implements AnyD
 
   valueOf(): string {
     return this.constructor.name; // for discord.js flatten function
+  }
+
+  async #push(set: boolean, db: string, key: string, ...value: unknown[]): Promise<unknown> {
+    const values = value.length === 1 && Array.isArray(value[0]) ? value[0] : value;
+    if (!db || !values.length) return;
+
+    this.saveLog(`pushing data to ${db}.${key}`, values);
+
+    const data = await this.model.findOneAndUpdate(
+      { key: db },
+      { [set ? '$addToSet' : '$push']: { [`value.${key}`]: { $each: NoCacheDB.serialize(values) } } } as UpdateQuery<DBDocument<Database>>,
+      { new: true, upsert: true }
+    ).exec();
+
+    return NoCacheDB.deserialize(data.value);
   }
 }

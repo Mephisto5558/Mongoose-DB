@@ -24,7 +24,7 @@ export type TemporalPrimitive = InstanceType<NonNullable<typeof supportedTempora
 export type SerializedTemporal = { $temporal: keyof NonNullable<typeof supportedTemporals>; $value: string };
 
 export type Primitive = string | number | boolean | bigint | undefined | null
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any -- `any` is required here */
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any, unicorn/prefer-temporal -- `any` is required here; Date is still supported */
   | Date | Set<unknown> | Map<unknown, unknown> | any[] | IfIsAny<TemporalPrimitive, { ifFalse: TemporalPrimitive }>;
 
 export type Paths<T> = T extends Primitive

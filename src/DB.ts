@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/filename-case -- class-only export */
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- needed for dynamic logic */
 
 import { Collection as DiscordCollection } from '@discordjs/collection';
 import NoCacheDB from './NoCacheDB.ts';
@@ -87,6 +87,7 @@ export default class DB<Database extends DBType = DBType> extends NoCacheDB<Data
   override async push<DBK extends keyof Database, K extends SettingsPaths<Database[DBK]>>(
     db: DBK, key: K, ...value: GetResult<Database[DBK], K> extends (infer E)[] ? E[] : never
   ): Promise<Database[DBK]> {
+    /* eslint-disable-next-line unicorn/no-return-array-push -- false positive: not an Array */
     const data = await super.push(db, key, ...value);
     this.cache.set(db, data);
 
