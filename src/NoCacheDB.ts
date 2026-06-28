@@ -1,7 +1,7 @@
 /* eslint-disable unicorn/filename-case -- class-only export */
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- needed for dynamic logic */
 
-import Mongoose, { ConnectionStates, Schema, SchemaTypes } from 'mongoose';
+import Mongoose, { Schema, SchemaTypes } from 'mongoose';
 import { DEFAULT_VALUE_LOGGING_MAX_JSONLENGTH, supportedTemporals } from './utils.ts';
 
 import type { Model, UpdateQuery } from 'mongoose';
@@ -82,7 +82,7 @@ export default class NoCacheDB<Database extends DBType = DBType> implements AnyD
     valueLoggingMaxJSONLength?: number | false,
     debugLoggingFunction?: (...str: unknown[]) => unknown
   ): Promise<this> {
-    if (Mongoose.connection.readyState !== ConnectionStates.connected) {
+    if (Mongoose.connection.readyState !== Mongoose.ConnectionStates.connected) {
       if (!dbConnectionString) throw new Error('A Connection String is required!');
       await Mongoose.connect(dbConnectionString);
     }
