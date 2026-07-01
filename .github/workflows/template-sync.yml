@@ -18,12 +18,8 @@ jobs:
 
         dependabot.yml:.github/dependabot.yml
 
-        workflows/template-sync.yml:.github/workflows/template-sync.yml
         workflows/eslint.yml:.github/workflows/eslint.yml
         workflows/njsscan.yml:.github/workflows/njsscan.yml
-
-        tsconfigs/tsconfig.check.json:tsconfig.json
-        tsconfigs/tsconfig.build.json:tsconfig.build.json
 
         # === CUSTOM START ===
         eslint.config.ts:eslint.config.ts
