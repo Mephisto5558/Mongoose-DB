@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@discordjs/collection": "^2.1.x",
-    "mongoose": "9.8.x"
+    "mongoose": "9.9.x"
   },
   "devDependencies": {
     "@mephisto5558/eslint-config": "latest",
